@@ -17,7 +17,7 @@ recommended_models:
   planner: ""
   judge: ""
 gdpr_relevance: personal_data
-bsi_baustein: [APP.2.1, APP.3.1, SYS.1.3, NET.1.1, NET.3.2]
+bsi_modules: [APP.2.1, APP.3.1, SYS.1.3, NET.1.1, NET.3.2]
 nis2_sector: [public_administration]
 ---
 
@@ -25,7 +25,7 @@ nis2_sector: [public_administration]
 
 ## Problem
 
-Government agencies operate with strict data segregation requirements (Verschlusssachen, VS-NfD), inter-agency data silos, and legal mandates for full audit trails on any data access or automated decision. Existing cloud platforms fail sovereignty and BSI IT-Grundschutz requirements.
+Government agencies operate with strict data segregation requirements (classified documents, VS-NfD), inter-agency data silos, and legal mandates for full audit trails on any data access or automated decision. Existing cloud platforms fail sovereignty and BSI IT-Grundschutz requirements.
 
 MoE Codex provides a BSI IT-Grundschutz-aligned, air-gappable data intelligence platform compliant with BVerfG data protection requirements (cf. Hessendata ruling 2023).
 
@@ -41,8 +41,8 @@ flowchart LR
 
 ## Compliance Checklist
 
-- [ ] BSI IT-Grundschutz Bausteine: APP.2.1, NET.1.1, NET.3.2
-- [ ] Vier-Augen-Prinzip via codex_approval mandatory
+- [ ] BSI IT-Grundschutz modules: APP.2.1, NET.1.1, NET.3.2
+- [ ] Four-eyes principle via codex_approval mandatory
 - [ ] BDSG and DSGVO for personal data
 - [ ] NIS2 public administration sector
 - [ ] Air-gap deployment on BSI-approved infrastructure (e.g. Open Telekom Cloud, Delos)

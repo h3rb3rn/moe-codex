@@ -15,7 +15,7 @@ recommended_models:
   planner: ""
   judge: ""
 gdpr_relevance: personal_data
-bsi_baustein: [APP.2.1, NET.1.1, NET.3.2, DER.1.1, DER.2.1]
+bsi_modules: [APP.2.1, NET.1.1, NET.3.2, DER.1.1, DER.2.1]
 nis2_sector: [digital_infrastructure, ict_service_management]
 ---
 
@@ -30,6 +30,6 @@ MoE Codex provides a sovereign threat intelligence graph: IOCs, CVEs, and alert 
 ## Compliance Checklist
 
 - [ ] NIS2: incident reporting within 24h/72h — lineage enables evidence packaging
-- [ ] BSI DER Bausteine: detection and response toolchain documented
+- [ ] BSI DER modules: detection and response toolchain documented
 - [ ] GDPR: IP addresses and user identifiers in logs are personal data — pseudonymise before ingest
 - [ ] No threat intelligence data to US-cloud SOAR/SIEM platforms

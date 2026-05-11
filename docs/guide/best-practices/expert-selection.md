@@ -51,7 +51,7 @@ Define escalation triggers in the template's routing rules:
 
 | Trigger phrase | Escalate to |
 |---------------|------------|
-| "GDPR", "DSGVO", "Art. 9", "Einwilligung" | `legal_advisor` |
+| "GDPR", "DSGVO", "Art. 9", "consent" | `legal_advisor` |
 | "risk model", "SREP", "BaFin", "Solvency" | `financial_advisor` |
 | "adverse event", "IND", "NDA", "EMA" | `medical_consult` |
 | "CVE-", "IOC", "MITRE ATT&CK" | `security_expert` |

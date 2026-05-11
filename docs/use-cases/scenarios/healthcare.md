@@ -16,7 +16,7 @@ recommended_models:
   planner: ""
   judge: ""
 gdpr_relevance: special_category
-bsi_baustein: [APP.3.1, SYS.1.3, NET.1.1]
+bsi_modules: [APP.3.1, SYS.1.3, NET.1.1]
 nis2_sector: [healthcare]
 ---
 

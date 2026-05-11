@@ -16,7 +16,7 @@ recommended_models:
   planner: ""
   judge: ""
 gdpr_relevance: special_category
-bsi_baustein: [APP.2.1, NET.1.1, NET.3.2, SYS.1.3]
+bsi_modules: [APP.2.1, NET.1.1, NET.3.2, SYS.1.3]
 nis2_sector: []
 ---
 
@@ -24,7 +24,7 @@ nis2_sector: []
 
 ## Problem
 
-Defence ministries and security agencies require data intelligence platforms that meet VS-NfD (Verschlusssachen — Nur für den Dienstgebrauch) classification requirements, full BSI IT-Grundschutz compliance, and can operate in completely air-gapped environments with no external network dependencies.
+Defence ministries and security agencies require data intelligence platforms that meet VS-NfD (classified — For Official Use Only) classification requirements, full BSI IT-Grundschutz compliance, and can operate in completely air-gapped environments with no external network dependencies.
 
 MoE Codex is a candidate foundation for such a platform. **This use case is experimental** — deployment requires customisation for classified network environments, dedicated legal review, and security accreditation by the responsible authority (BSI or equivalent).
 
@@ -41,7 +41,7 @@ flowchart LR
 
 ## Compliance Checklist
 
-- [ ] BSI IT-Grundschutz: full Bausteine compliance required (dedicated assessment)
+- [ ] BSI IT-Grundschutz: full module compliance required (dedicated assessment)
 - [ ] VS-NfD classification handling: separate network segment mandatory
 - [ ] AI Act Art. 5: verify no prohibited practices are enabled
 - [ ] AI Act Annex III high/unacceptable risk: independent conformity assessment required

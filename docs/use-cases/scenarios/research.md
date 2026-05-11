@@ -17,7 +17,7 @@ recommended_models:
   planner: ""
   judge: ""
 gdpr_relevance: personal_data
-bsi_baustein: [APP.3.1, SYS.1.3]
+bsi_modules: [APP.3.1, SYS.1.3]
 nis2_sector: []
 ---
 
