@@ -53,6 +53,10 @@ async def lifespan(app: FastAPI):
     state.trino_reachable = await trino_health()
     logger.info("Trino reachable: %s", state.trino_reachable)
 
+    from services.documents import health_check as docling_health
+    state.docling_reachable = await docling_health()
+    logger.info("DocLing reachable: %s", state.docling_reachable)
+
     try:
         from services.lineage import _enabled as lineage_enabled
         from services.versioning import _enabled as versioning_enabled
@@ -99,6 +103,7 @@ async def codex_status() -> dict:
     from services.eval import MLFLOW_ENABLED
     from services.guardrails import get_config, GUARDRAILS_ENABLED
     from services.trino import TRINO_ENABLED
+    from services.documents import DOCLING_ENABLED
     gr_config = get_config()
     return {
         "service": "moe-codex",
@@ -115,6 +120,8 @@ async def codex_status() -> dict:
         "guardrails_patterns": len(gr_config.get("patterns", {})),
         "trino_enabled":       TRINO_ENABLED,
         "trino_reachable":     state.trino_reachable,
+        "docling_enabled":     DOCLING_ENABLED,
+        "docling_reachable":   state.docling_reachable,
     }
 
 
@@ -130,6 +137,7 @@ from routes.opa        import router as opa_router
 from routes.eval       import router as eval_router
 from routes.guardrails import router as guardrails_router
 from routes.trino      import router as trino_router
+from routes.documents  import router as documents_router
 
 app.include_router(approval_router,   prefix="/v1/codex")
 app.include_router(catalog_router,    prefix="/v1/codex")
@@ -141,6 +149,7 @@ app.include_router(opa_router)
 app.include_router(eval_router)
 app.include_router(guardrails_router)
 app.include_router(trino_router)
+app.include_router(documents_router)
 
 
 @app.exception_handler(Exception)

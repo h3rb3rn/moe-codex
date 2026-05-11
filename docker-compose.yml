@@ -37,6 +37,8 @@ services:
         condition: service_healthy
       moe-trino:
         condition: service_healthy
+      moe-docling:
+        condition: service_healthy
     networks:
       - moe_net
     deploy:
@@ -253,6 +255,31 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
+  # ── DocLing — Document Intelligence (parse PDF/DOCX/images → Markdown) ──────
+  moe-docling:
+    build:
+      context: ./docling-service
+      dockerfile: Dockerfile
+    container_name: moe-docling
+    restart: unless-stopped
+    environment:
+      LOG_LEVEL: "${LOG_LEVEL:-INFO}"
+    ports:
+      - "${DOCLING_HOST_PORT:-7080}:7080"
+    networks:
+      - moe_net
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:7080/health | grep -q '\"status\":\"ok\"' || exit 1"]
+      interval: 20s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: 3G
 
   # ── Trino — Distributed SQL Federation ─────────────────────────────────────
   moe-trino:
