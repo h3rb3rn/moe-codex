@@ -7,24 +7,24 @@ package codex.approval
 default allow := false
 
 # Admins may do anything.
-allow {
+allow if {
     "admin" in input.user.groups
 }
 
 # Any authenticated user may submit a bundle for review.
-allow {
+allow if {
     input.action == "submit"
     input.user.id != ""
 }
 
 # Any authenticated user may view pending items.
-allow {
+allow if {
     input.action == "view"
     input.user.id != ""
 }
 
 # Only approvers and admins may approve or reject.
-allow {
+allow if {
     input.action in {"approve", "reject"}
     "approver" in input.user.groups
 }
