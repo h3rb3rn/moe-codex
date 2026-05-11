@@ -15,3 +15,4 @@ sovereign_reachable: bool = False
 enterprise_reachable: bool = False
 opa_reachable: bool = False
 mlflow_reachable: bool = False
+trino_reachable: bool = False

@@ -35,6 +35,8 @@ services:
         condition: service_healthy
       moe-nifi:
         condition: service_healthy
+      moe-trino:
+        condition: service_healthy
     networks:
       - moe_net
     deploy:
@@ -251,6 +253,30 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
+  # ── Trino — Distributed SQL Federation ─────────────────────────────────────
+  moe-trino:
+    image: trinodb/trino:latest
+    container_name: moe-trino
+    restart: unless-stopped
+    ports:
+      - "${TRINO_HOST_PORT:-8080}:8080"
+    volumes:
+      - ./trino/etc:/etc/trino:ro
+      - ./trino/catalog:/etc/trino/catalog:ro
+    networks:
+      - moe_net
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8080/v1/info | grep -q '\"starting\":false' || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 8
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: 2G
 
   # ── lakeFS — Data Version Control ───────────────────────────────────────────
   # Uses moe-storage (MinIO from moe-sovereign stack) as S3-compatible backend.
