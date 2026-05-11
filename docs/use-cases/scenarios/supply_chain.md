@@ -16,7 +16,7 @@ recommended_models:
   planner: ""
   judge: ""
 gdpr_relevance: none
-bsi_baustein: [APP.3.1]
+bsi_modules: [APP.3.1]
 nis2_sector: []
 ---
 
@@ -30,7 +30,7 @@ MoE Codex provides a lineage-tracked supplier intelligence graph: supplier data 
 
 ## Compliance Checklist
 
-- [ ] LkSG (Lieferkettensorgfaltspflichtengesetz): risk documentation and audit trail
+- [ ] LkSG (German Supply Chain Due Diligence Act): risk documentation and audit trail
 - [ ] EU CSDDD: due diligence evidence chain via Marquez lineage
 - [ ] ESRS (European Sustainability Reporting Standards): data trail for ESG disclosures
 - [ ] No personal data in supplier risk pipeline (unless named individuals are supply chain actors)

@@ -15,7 +15,7 @@ recommended_models:
   planner: ""
   judge: ""
 gdpr_relevance: none
-bsi_baustein: [APP.2.1, NET.1.1, NET.3.2, IND.2.1, IND.2.3]
+bsi_modules: [APP.2.1, NET.1.1, NET.3.2, IND.2.1, IND.2.3]
 nis2_sector: [energy]
 ---
 
@@ -39,7 +39,7 @@ flowchart LR
 ## Compliance Checklist
 
 - [ ] NIS2 energy sector requirements (high-impact entities)
-- [ ] BSI IT-Grundschutz IND-Bausteine (IND.2.1, IND.2.3)
+- [ ] BSI IT-Grundschutz IND modules (IND.2.1, IND.2.3)
 - [ ] BDEW/VDE application rule for OT security
 - [ ] Strict IT/OT network segmentation — NiFi as DMZ bridge only
 - [ ] No personal data in OT telemetry pipeline

@@ -16,7 +16,7 @@ recommended_models:
   planner: ""
   judge: ""
 gdpr_relevance: none
-bsi_baustein: [APP.3.1, IND.2.1]
+bsi_modules: [APP.3.1, IND.2.1]
 nis2_sector: [manufacturing]
 ---
 

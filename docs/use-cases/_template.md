@@ -18,7 +18,7 @@ recommended_models:
   planner: ""           # empty = use moe-sovereign routing
   judge: ""
 gdpr_relevance: none    # none | personal_data | special_category
-bsi_baustein: []        # e.g. [APP.2.1, NET.1.1]
+bsi_modules: []        # e.g. [APP.2.1, NET.1.1]
 nis2_sector: []         # e.g. [energy, healthcare]
 ---
 

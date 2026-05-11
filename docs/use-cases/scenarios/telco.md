@@ -15,7 +15,7 @@ recommended_models:
   planner: ""
   judge: ""
 gdpr_relevance: personal_data
-bsi_baustein: [APP.2.1, NET.1.1, NET.3.2]
+bsi_modules: [APP.2.1, NET.1.1, NET.3.2]
 nis2_sector: [digital_infrastructure, telecoms]
 ---
 
@@ -30,6 +30,6 @@ MoE Codex enables telecom-grade data intelligence with strict data segregation: 
 ## Compliance Checklist
 
 - [ ] GDPR + TKG 2021 §§ 3, 174 ff.: subscriber metadata processing restricted to specific purposes
-- [ ] BNetzA Vorratsdatenspeicherung ruling: no unlawful retention
+- [ ] BNetzA data retention ruling: no unlawful retention
 - [ ] NIS2 telecommunications sector requirements
 - [ ] Strict network/subscriber pipeline segregation in NiFi flows

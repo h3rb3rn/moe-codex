@@ -33,7 +33,7 @@ clean cut. This page walks you through it.
 ## Step 1 — Export from moe-sovereign
 
 ```bash
-cd /opt/deployment/moe-sovereign/moe-codex
+cd /opt/moe-codex
 ./scripts/migrate-from-sovereign.sh export-only
 ```
 
@@ -99,7 +99,7 @@ CODEX_URL=http://moe-codex-api:8090
 
 Then stop the now-orphaned Phase 16-24 services in moe-sovereign:
 ```bash
-cd /opt/deployment/moe-sovereign/moe-infra
+cd /opt/moe-sovereign/moe-infra
 docker compose -f docker-compose.enterprise.yml down
 ```
 
@@ -135,7 +135,7 @@ lakeFS pointer that we migrated in Step 3.
 
 If migration goes wrong:
 
-1. Stop codex: `cd /opt/deployment/moe-sovereign/moe-codex && docker compose down`
+1. Stop codex: `cd /opt/moe-codex && docker compose down`
 2. Restore moe-sovereign: `INSTALL_ENTERPRISE_DATA_STACK=true` back in `.env`
 3. Bring the old enterprise stack back up: `docker compose -f docker-compose.enterprise.yml up -d`
 4. The postgres volumes in moe-sovereign were **not modified** by the

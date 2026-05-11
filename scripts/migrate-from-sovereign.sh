@@ -131,7 +131,7 @@ if [[ "$mode" == "all" || "$mode" == "restore-only" ]]; then
          CODEX_URL=http://moe-codex-api:8090
 
     2. Bring down the now-orphaned Phase 16-24 services in moe-sovereign:
-         cd /opt/deployment/moe-sovereign/moe-infra
+         cd /opt/moe-sovereign/moe-infra
          docker compose -f docker-compose.enterprise.yml down
 
     3. Upgrade moe-sovereign past the phase-cleanup commit.

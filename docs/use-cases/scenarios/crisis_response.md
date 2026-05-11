@@ -15,7 +15,7 @@ recommended_models:
   planner: ""
   judge: ""
 gdpr_relevance: personal_data
-bsi_baustein: [APP.2.1, NET.1.1, SYS.1.3]
+bsi_modules: [APP.2.1, NET.1.1, SYS.1.3]
 nis2_sector: [public_administration]
 ---
 
@@ -23,7 +23,7 @@ nis2_sector: [public_administration]
 
 ## Problem
 
-Crisis management agencies (THW, Feuerwehr, Bundesamt für Bevölkerungsschutz) coordinate across dozens of organisations with incompatible data formats and no shared situational awareness layer. Real-time querying of resource availability, affected populations, and infrastructure status requires minutes of manual lookup that could be seconds.
+Crisis management agencies (THW, Feuerwehr, BBK — Federal Office of Civil Protection) coordinate across dozens of organisations with incompatible data formats and no shared situational awareness layer. Real-time querying of resource availability, affected populations, and infrastructure status requires minutes of manual lookup that could be seconds.
 
 MoE Codex provides a sovereign real-time coordination intelligence layer, deployable on mobile infrastructure, with NiFi ingesting feeds from disparate agencies and GraphRAG enabling natural-language situational queries.
 

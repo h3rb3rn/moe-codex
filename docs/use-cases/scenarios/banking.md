@@ -18,7 +18,7 @@ recommended_models:
   planner: ""
   judge: ""
 gdpr_relevance: personal_data
-bsi_baustein: [APP.2.1, APP.3.1, NET.1.1]
+bsi_modules: [APP.2.1, APP.3.1, NET.1.1]
 nis2_sector: [banking, financial_market_infrastructure]
 ---
 
