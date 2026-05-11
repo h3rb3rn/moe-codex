@@ -26,8 +26,10 @@ def test_enabled_true_when_endpoint_set(monkeypatch):
 
 
 def test_pending_branch_prefix_constant():
+    """lakeFS rejects slashes in branch IDs, so the prefix uses an underscore."""
     import services.versioning as v
-    assert v.PENDING_BRANCH_PREFIX == "pending/"
+    assert v.PENDING_BRANCH_PREFIX == "pending_"
+    assert "/" not in v.PENDING_BRANCH_PREFIX
 
 
 def test_archive_to_branch_signature():

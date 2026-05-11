@@ -78,7 +78,7 @@ async def codex_status() -> dict:
     """Detailed status — verifies upstream sovereign + enterprise stack reachability."""
     from services.lineage import _enabled as lineage_enabled
     from services.versioning import _enabled as versioning_enabled
-    from services.etl_pipeline import _enabled as etl_enabled
+    from services.etl_pipeline import _submit_enabled as etl_enabled
     return {
         "service": "moe-codex",
         "sovereign_reachable": await sovereign_health(),

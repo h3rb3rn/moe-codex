@@ -265,7 +265,9 @@ async def get_bundle_at(repo: str, ref: str, path: str) -> Optional[Dict[str, An
 # pending branches are discovered by prefix; approve = merge into main +
 # delete branch; reject = delete branch with no merge.
 
-PENDING_BRANCH_PREFIX = "pending/"
+PENDING_BRANCH_PREFIX = "pending_"
+# lakeFS branch IDs only accept [a-zA-Z0-9_-], no slashes.
+# The prefix is therefore an underscore-suffixed token, not a slash-rooted namespace.
 
 
 async def archive_to_branch(bundle: Dict[str, Any], *,
