@@ -1,0 +1,36 @@
+# MoE Codex — NeMo Guardrails configuration
+# Compatible with NeMo Guardrails Colang 2.0 schema subset.
+# Edit this file and call POST /v1/codex/guardrails/reload to apply.
+
+rails:
+  input:
+    flows:
+      - block jailbreak
+      - block sensitive pii
+  output:
+    flows:
+      - block harmful content
+
+patterns:
+
+  block jailbreak:
+    type: regex
+    patterns:
+      - "ignore (all )?previous instructions"
+      - "pretend you (are|have been)"
+      - "DAN mode"
+      - "jailbreak"
+      - "you are now (a )?\\w+ without (any )?restrictions"
+
+  block sensitive pii:
+    type: regex
+    patterns:
+      - "\\b\\d{3}-\\d{2}-\\d{4}\\b"        # US SSN
+      - "\\b\\d{4}[\\s-]\\d{4}[\\s-]\\d{4}[\\s-]\\d{4}\\b"  # Credit card
+      - "\\b[A-Z]{2}\\d{6}\\b"              # Passport number style
+
+  block harmful content:
+    type: regex
+    patterns:
+      - "\\b(bomb|weapon|explosive)\\s+(instruction|recipe|manual)\\b"
+      - "\\bhow to (synthesize|manufacture) (drugs|narcotics)\\b"

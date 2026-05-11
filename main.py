@@ -41,6 +41,14 @@ async def lifespan(app: FastAPI):
     state.opa_reachable = await opa_health()
     logger.info("OPA reachable: %s", state.opa_reachable)
 
+    from services.eval import health_check as mlflow_health
+    state.mlflow_reachable = await mlflow_health()
+    logger.info("MLflow reachable: %s", state.mlflow_reachable)
+
+    from services.guardrails import reload_config as gr_reload
+    _gr = gr_reload()
+    logger.info("Guardrails loaded: %d patterns", len(_gr.get("patterns", {})))
+
     try:
         from services.lineage import _enabled as lineage_enabled
         from services.versioning import _enabled as versioning_enabled
@@ -84,6 +92,9 @@ async def codex_status() -> dict:
     from services.versioning import _enabled as versioning_enabled
     from services.etl_pipeline import _submit_enabled as etl_enabled
     from services.opa import health_check as opa_health, OPA_ENABLED
+    from services.eval import MLFLOW_ENABLED
+    from services.guardrails import get_config, GUARDRAILS_ENABLED
+    gr_config = get_config()
     return {
         "service": "moe-codex",
         "sovereign_reachable": await sovereign_health(),
@@ -93,6 +104,10 @@ async def codex_status() -> dict:
         "redis_reachable":     state.redis_client is not None,
         "opa_enabled":         OPA_ENABLED,
         "opa_reachable":       state.opa_reachable,
+        "mlflow_enabled":      MLFLOW_ENABLED,
+        "mlflow_reachable":    state.mlflow_reachable,
+        "guardrails_enabled":  GUARDRAILS_ENABLED,
+        "guardrails_patterns": len(gr_config.get("patterns", {})),
     }
 
 
@@ -105,6 +120,8 @@ from routes.lineage    import router as lineage_router
 from routes.versioning import router as versioning_router
 from routes.etl        import router as etl_router
 from routes.opa        import router as opa_router
+from routes.eval       import router as eval_router
+from routes.guardrails import router as guardrails_router
 
 app.include_router(approval_router,   prefix="/v1/codex")
 app.include_router(catalog_router,    prefix="/v1/codex")
@@ -113,6 +130,8 @@ app.include_router(lineage_router,    prefix="/v1/codex")
 app.include_router(versioning_router, prefix="/v1/codex")
 app.include_router(etl_router,        prefix="/v1/codex")
 app.include_router(opa_router)
+app.include_router(eval_router)
+app.include_router(guardrails_router)
 
 
 @app.exception_handler(Exception)

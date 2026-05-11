@@ -1,0 +1,22 @@
+description: "Clinical query accuracy — medical_consult expert"
+
+prompts:
+  - "Summarise the key adverse events for a Phase III oncology trial with >5% incidence rate."
+  - "What are the EMA submission requirements for a New Drug Application?"
+
+providers:
+  - id: moe-sovereign
+    config:
+      model: medical_consult
+
+tests:
+  - assert:
+      - type: contains
+        value: "adverse event"
+      - type: not-contains
+        value: "I cannot"
+  - assert:
+      - type: contains
+        value: "EMA"
+      - type: llm-rubric
+        value: "Response accurately describes regulatory submission requirements"

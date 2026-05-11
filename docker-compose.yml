@@ -27,6 +27,8 @@ services:
     depends_on:
       moe-opa:
         condition: service_healthy
+      moe-mlflow:
+        condition: service_healthy
       moe-marquez:
         condition: service_healthy
       moe-lakefs:
@@ -40,6 +42,56 @@ services:
         limits:
           cpus: "1.0"
           memory: 768M
+
+  # ── MLflow — Experiment Tracking & Model Registry ───────────────────────────
+  moe-mlflow:
+    image: ghcr.io/mlflow/mlflow:v2.14.3
+    container_name: moe-mlflow
+    restart: unless-stopped
+    command: >
+      mlflow server
+      --backend-store-uri postgresql://mlflow:${MLFLOW_DB_PASSWORD:-mlflow-changeme}@mlflow-postgres:5432/mlflow
+      --default-artifact-root /mlflow/artifacts
+      --host 0.0.0.0
+      --port 5001
+    volumes:
+      - mlflow_artifacts:/mlflow/artifacts
+    ports:
+      - "${MLFLOW_HOST_PORT:-5001}:5001"
+    depends_on:
+      mlflow-postgres:
+        condition: service_healthy
+    networks:
+      - moe_net
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:5001/health || exit 1"]
+      interval: 20s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 768M
+
+  mlflow-postgres:
+    image: postgres:16-alpine
+    container_name: mlflow-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: mlflow
+      POSTGRES_PASSWORD: "${MLFLOW_DB_PASSWORD:-mlflow-changeme}"
+      POSTGRES_DB: mlflow
+    volumes:
+      - mlflow_db_data:/var/lib/postgresql/data
+    networks:
+      - moe_net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mlflow -d mlflow"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   # ── OPA — Open Policy Agent (access control) ────────────────────────────────
   moe-opa:
@@ -247,6 +299,8 @@ volumes:
   nifi_logs:
   marquez_db_data:
   lakefs_db_data:
+  mlflow_artifacts:
+  mlflow_db_data:
 
 networks:
   # Joins the moe-sovereign network so codex services can reach

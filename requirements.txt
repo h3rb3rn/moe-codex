@@ -5,3 +5,4 @@ redis[hiredis]>=5.0.0
 pydantic>=2.6.0
 python-multipart>=0.0.27
 respx>=0.21.0
+pyyaml>=6.0
