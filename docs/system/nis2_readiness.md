@@ -1,64 +1,64 @@
 # NIS2 Readiness — MoE Codex
 
-Skeleton mapping for NIS2-Umsetzungsgesetz (NIS2UmsuCG, Stand 2024-2025).
-Adressiert "wesentliche" und "wichtige" Einrichtungen gemäß § 8 NIS2UmsuCG.
+Skeleton mapping for the NIS2-Umsetzungsgesetz (NIS2UmsuCG, German
+transposition of NIS2, status 2024-2025). Addresses "essential" and
+"important" entities under § 8 NIS2UmsuCG.
 
-> **Status:** Skeleton. Detaillierte Risiko-Maßnahmen-Tabellen folgen
-> sobald MoE Codex bei einem ersten betroffenen Operator (z.B. KRITIS-
-> Betreiber) deployt wird.
-
----
-
-## 1. Sektorale Anwendbarkeit
-
-NIS2 erfasst diese Sektoren (Anhang I/II):
-- Energie, Verkehr, Banken/Finanzmarkt, Gesundheit, Trinkwasser, Abwasser,
-  digitale Infrastruktur, Verwaltung der Informationstechnologie für
-  öffentliche Verwaltung, Weltraum, Postdienste, Abfallbewirtschaftung,
-  Chemie, Lebensmittelproduktion, Herstellung medizinischer Geräte,
-  Verarbeitendes Gewerbe (kritische Subsektoren), digitale Dienste,
-  Forschung.
-
-Wenn der Operator in einem dieser Sektoren tätig ist UND die Größenklasse
-(typisch ≥ 50 MA / ≥ 10 Mio. € Umsatz; KRITIS unabhängig der Größe) erfüllt:
-NIS2-Pflicht.
+> **Status:** skeleton. Detailed risk-measure tables will be expanded
+> once MoE Codex is deployed at a first NIS2-affected operator (e.g. a
+> KRITIS operator).
 
 ---
 
-## 2. Anforderungs-Mapping
+## 1. Sectoral applicability
 
-### § 30 NIS2UmsuCG — Risikomanagementmaßnahmen
+NIS2 covers these sectors (Annex I / II):
+- Energy, transport, banking and financial markets, health, drinking
+  water, waste water, digital infrastructure, ICT-service management for
+  public administration, space, postal services, waste management,
+  chemicals, food production, manufacturing of medical devices, critical
+  manufacturing subsectors, digital services, research.
 
-| Anforderung | Erfüllt durch |
+If the operator is active in one of these sectors AND meets the size
+threshold (typically ≥ 50 staff / ≥ EUR 10 m turnover; KRITIS operators
+regardless of size): NIS2 applies.
+
+---
+
+## 2. Requirements mapping
+
+### § 30 NIS2UmsuCG — Risk-management measures
+
+| Requirement | Satisfied by |
 |---|---|
-| (1) Konzept Risikoanalyse + Informationssicherheit | TODO — Operator-Pflicht; codex liefert Bausteine |
-| (2) Bewältigung von Sicherheitsvorfällen | Drift-Events + Kafka-Audit-Trail + Falco (Phase D.3.4) |
-| (3) Aufrechterhaltung Betrieb (Backup/Restore) | `scripts/migrate-from-sovereign.sh` als Vorlage |
-| (4) Sicherheit der Lieferkette | `audit-licenses.sh` + `license_compliance.md` |
-| (5) Sicherheit bei Erwerb/Entwicklung/Wartung | Apache-2.0-Quelloffenheit |
-| (6) Wirksamkeitsbewertung | `pytest`-Suite + Drift-Detection als laufende Wirksamkeitsprüfung |
-| (7) Grundlegende Cyberhygiene + Schulung | Operator-Pflicht |
-| (8) Kryptographie | TLS via Caddy; Authentik-Sessions; lakeFS-Encryption |
-| (9) Personalsicherheit + Zugangskontrolle + Anlagenverwaltung | Authentik + OPA (Phase D.1.1) |
-| (10) Multi-Faktor-Auth + Notfallkommunikation | Authentik 2FA |
+| (1) Risk-analysis concept + information-security policy | TODO — operator obligation; codex supplies building blocks |
+| (2) Handling of security incidents | Drift events + Kafka audit trail + Falco (planned) |
+| (3) Business continuity (backup / restore) | `scripts/migrate-from-sovereign.sh` as a template |
+| (4) Supply-chain security | `audit-licenses.sh` + `license_compliance.md` |
+| (5) Security in acquisition, development, maintenance | Apache-2.0 source transparency |
+| (6) Effectiveness review | `pytest` suite + drift detection as ongoing effectiveness check |
+| (7) Basic cyber hygiene + training | Operator obligation |
+| (8) Cryptography | TLS via Caddy; Authentik sessions; lakeFS encryption |
+| (9) Personnel security + access control + asset management | Authentik + OPA (planned) |
+| (10) Multi-factor auth + emergency communication | Authentik 2FA |
 
-### § 32 NIS2UmsuCG — Meldepflichten
+### § 32 NIS2UmsuCG — Reporting obligations
 
-| Frist | Pflicht | Codex-Unterstützung |
+| Deadline | Duty | Codex support |
 |---|---|---|
-| 24 h | Frühwarnung an BSI | Alerting-Pfad: Drift-Event `severity: crit` → Falco-Alert → SIEM |
-| 72 h | Vollständige Meldung | Marquez-Events + Drift-Events liefern Forensik |
-| 1 Monat | Abschlussbericht | Audit-Trail via lakeFS-Commit-History |
+| 24 h | Early warning to BSI | Alerting path: drift event `severity: crit` → Falco alert → SIEM |
+| 72 h | Full report | Marquez events + drift events provide forensics |
+| 1 month | Final report | Audit trail via lakeFS commit history |
 
 ---
 
 ## 3. Maintenance contract
 
-Update-Trigger:
-- BSI gibt NIS2-Umsetzungs-Konkretisierungen heraus
-- Neue Cybersecurity-Standards (z.B. ISO 27001:202X-Revision)
-- Operator meldet konkrete Audit-Anforderung
-- Codex erweitert sich um audit-relevante Komponenten (z.B. OPA-Policy-Engine)
+Update triggers:
+- BSI publishes NIS2 implementation guidance
+- New cybersecurity standards (e.g. ISO 27001:202X revision)
+- Operator flags a concrete audit requirement
+- Codex extends with audit-relevant components (e.g. OPA policy engine)
 
-Diese Page ist Skeleton — die `TODO:`-Markierungen werden in der
-Phase-2-Erweiterung systematisch ergänzt.
+This page is a skeleton — the `TODO:` markers will be systematically
+filled in during the phase 2 extension work.

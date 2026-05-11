@@ -1,79 +1,84 @@
-# BSI-Grundschutz — Baustein-Mapping
+# BSI-Grundschutz — Baustein Mapping
 
-Skeleton mapping of MoE Codex components onto BSI-IT-Grundschutz-Bausteine
-(Edition 2023). Operators with C5 / ISO-27001 / KritIS audits use this as
-a starting point.
+Skeleton mapping of MoE Codex components onto BSI IT-Grundschutz
+*Bausteine* (Edition 2023). Operators undergoing C5 / ISO 27001 / KritIS
+audits use this as a starting point.
 
-> **Status:** Skeleton (2026-05). Bausteine-Inhalte sind noch nicht
-> vollständig kommentiert — `TODO:` Markierungen kennzeichnen offene
-> Stellen, die im konkreten Operator-Kontext ergänzt werden müssen.
+> **Status:** skeleton (2026-05). Baustein contents are not yet fully
+> commented; `TODO:` markers identify gaps that must be closed in the
+> concrete operator context.
+
+The Baustein identifiers (e.g. `OPS.1.1.5`) are kept in their original
+German codes because they are the official BSI identifiers used in audit
+documentation.
 
 ---
 
-## ISMS-Schicht
+## ISMS layer
 
-| Baustein | Relevanz für Codex | Erfüllt durch |
+| Baustein | Relevance for codex | Satisfied by |
 |---|---|---|
-| ISMS.1 Sicherheitsmanagement | Operator-Pflicht | TODO |
+| ISMS.1 Security management | Operator obligation | TODO |
 
-## ORP-Schicht (Organisation/Personal)
+## ORP layer (Organisation / Personnel)
 
-| Baustein | Relevanz | Erfüllt durch |
+| Baustein | Relevance | Satisfied by |
 |---|---|---|
-| ORP.4 Identitäts- und Berechtigungsmanagement | Hoch | Authentik OIDC + RBAC; OPA-Marking-Layer (Phase D.1.1) |
+| ORP.4 Identity and access management | High | Authentik OIDC + RBAC; OPA markings layer (planned) |
 
-## CON-Schicht (Konzeption)
+## CON layer (Conception)
 
-| Baustein | Relevanz | Erfüllt durch |
+| Baustein | Relevance | Satisfied by |
 |---|---|---|
-| CON.1 Krypto-Konzept | Hoch | TLS via Caddy; Authentik-Sessions; lakeFS-Secret-Key | 
-| CON.3 Datensicherungs-Konzept | Hoch | `migrate-from-sovereign.sh` zeigt Backup-Pfad; Postgres-Dump-Pattern |
+| CON.1 Crypto concept | High | TLS via Caddy; Authentik sessions; lakeFS secret key |
+| CON.3 Backup concept | High | `migrate-from-sovereign.sh` shows backup path; postgres-dump pattern |
 
-## OPS-Schicht (Betrieb)
+## OPS layer (Operations)
 
-| Baustein | Relevanz | Erfüllt durch |
+| Baustein | Relevance | Satisfied by |
 |---|---|---|
-| OPS.1.1.2 Ordnungsgemäße IT-Administration | Hoch | install.sh + Migrations-Skript + Audit-Skript |
-| OPS.1.1.4 Schutz vor Schadprogrammen | Mittel | TODO — Operator-Pflicht (Falco optional in Phase D.3.4) |
-| OPS.1.1.5 Protokollierung | Hoch | Marquez-Run-Events, Drift-Events, Kafka `moe.audit` |
-| OPS.1.1.6 Software-Tests und -Freigaben | Hoch | pytest 287+/287 grün als Release-Gate |
+| OPS.1.1.2 Proper IT administration | High | install.sh + migration script + audit script |
+| OPS.1.1.4 Protection against malware | Medium | TODO — operator obligation (Falco optional in later phase) |
+| OPS.1.1.5 Logging | High | Marquez run events, drift events, Kafka `moe.audit` |
+| OPS.1.1.6 Software testing and releases | High | pytest 287+/287 green as release gate |
 
-## APP-Schicht (Anwendungen)
+## APP layer (Applications)
 
-| Baustein | Relevanz | Erfüllt durch |
+| Baustein | Relevance | Satisfied by |
 |---|---|---|
-| APP.3.3 Webanwendungen | Hoch | FastAPI mit Pydantic-Validation; Caddy als Reverse-Proxy |
-| APP.4.3 Relationale Datenbanksysteme | Hoch | Postgres mit Authentik-Auth; Backup via pg_dump |
-| APP.5.3 Big Data | Mittel | Marquez/lakeFS sind Big-Data-adjazent — TODO genauere Verortung |
+| APP.3.3 Web applications | High | FastAPI with Pydantic validation; Caddy as reverse proxy |
+| APP.4.3 Relational database systems | High | Postgres with Authentik auth; backup via pg_dump |
+| APP.5.3 Big data | Medium | Marquez / lakeFS are big-data-adjacent — TODO precise placement |
 
-## SYS-Schicht (IT-Systeme)
+## SYS layer (Systems)
 
-| Baustein | Relevanz | Erfüllt durch |
+| Baustein | Relevance | Satisfied by |
 |---|---|---|
-| SYS.1.1 Allgemeiner Server | Hoch | Container-Hardening (read-only fs, no-new-privs) |
-| SYS.1.6 Containerisierung | Hoch | Docker Compose mit explizitem `cap_drop`, Netzwerk-Isolation |
+| SYS.1.1 General server | High | Container hardening (read-only fs, no-new-privs) |
+| SYS.1.6 Containerisation | High | Docker Compose with explicit `cap_drop`, network isolation |
 
-## NET-Schicht
+## NET layer (Network)
 
-| Baustein | Relevanz | Erfüllt durch |
+| Baustein | Relevance | Satisfied by |
 |---|---|---|
-| NET.3.2 Firewall | Hoch | Operator-Pflicht (Hetzner / IONOS Firewall) |
-| NET.3.3 VPN | Mittel | TODO — operator-spezifisch |
+| NET.3.2 Firewall | High | Operator obligation (e.g. Hetzner / IONOS firewall) |
+| NET.3.3 VPN | Medium | TODO — operator-specific |
 
-## INF-Schicht (Infrastruktur)
+## INF layer (Infrastructure)
 
-Vollständig operator-spezifisch. Hosting-Empfehlungen siehe
+Entirely operator-specific. Hosting recommendations: see
 [`eu_sovereignty_charter.md`](eu_sovereignty_charter.md).
 
 ---
 
 ## Maintenance contract
 
-Update-Trigger:
-- BSI veröffentlicht neue Bausteine oder Edition
-- Operator meldet Mapping-Lücke aus konkretem Audit
-- Neuer Codex-Container kommt hinzu → Baustein-Zuordnung dokumentieren
+Update triggers:
+- BSI publishes new Bausteine or a new edition
+- Operator flags a mapping gap from a concrete audit
+- A new codex container is added → document the Baustein mapping
+- Major Codex release that changes the security posture
 
-Diese Page ist Skeleton — bei einem konkreten Audit füllt der Operator die
-`TODO:`-Markierungen mit Verweisen auf konkrete Konfigurationsdateien
-und Verfahrensanweisungen.
+This page is a skeleton — in a concrete audit, the operator fills the
+`TODO:` markers with references to specific configuration files and
+operational procedures.

@@ -1,139 +1,141 @@
-# DSGVO DPIA — Template (Datenschutz-Folgenabschätzung)
+# GDPR DPIA — Template
 
-This page is a **DPIA template** under Art. 35 DSGVO for operators
-deploying MoE Codex. It is structured as a Markdown form: copy this
-file into your internal compliance repo, fill in each section, and have
-the data-protection officer sign off.
+This page is a **Data Protection Impact Assessment template** under
+GDPR Art. 35 for operators deploying MoE Codex. It is structured as a
+Markdown form: copy this file into your internal compliance repo, fill
+in each section, and have the data-protection officer sign off.
 
-> **Form, not record.** This file in the moe-codex repo is the
-> empty template. Filled-in DPIAs live in operator-controlled storage
-> and must not be checked into this public repo.
-
----
-
-## 1. Beschreibung des Vorhabens
-
-- **Bezeichnung des Verarbeitungsvorgangs:** _<Use-Case Name>_
-- **Verantwortlicher (Operator):** _<Behörde/Unternehmen, Adresse>_
-- **Datenschutzbeauftragte/r:** _<Name, Email>_
-- **Stand der Bearbeitung:** _<YYYY-MM-DD, Version>_
-
-### 1.1 Zweck der Verarbeitung
-_<Konkrete Beschreibung — keine generische "KI-Unterstützung", sondern
-"Vorprüfung von Bauanträgen", "Recherche zu pharmazeutischen
-Nebenwirkungen", "Polizei-Lagebild zu organisierter Kriminalität" o.ä.>_
-
-### 1.2 Rechtsgrundlage
-- [ ] Art. 6 Abs. 1 lit. a (Einwilligung)
-- [ ] Art. 6 Abs. 1 lit. b (Vertragserfüllung)
-- [ ] Art. 6 Abs. 1 lit. c (rechtliche Verpflichtung) — _<welche?>_
-- [ ] Art. 6 Abs. 1 lit. e (öffentliches Interesse) — _<welches?>_
-- [ ] Art. 6 Abs. 1 lit. f (berechtigtes Interesse) — _<Interessen­abwägung beilegen>_
-- [ ] Art. 9 Abs. 2 (besondere Kategorien) — _<welche Ausnahme?>_
-
-### 1.3 Betroffene Personenkreise
-_<z.B. Antragsteller, Patienten, Verdächtige, Beschäftigte; Anzahl absolut
-und prozentual aller deutschen/EU-Bürger>_
-
-### 1.4 Datenkategorien
-- [ ] Stammdaten (Name, Anschrift, Geburtsdatum)
-- [ ] Kontaktdaten (Email, Telefon)
-- [ ] Vertragsdaten
-- [ ] Gesundheitsdaten (Art. 9 DSGVO)
-- [ ] Strafrechtliche Daten (Art. 10 DSGVO)
-- [ ] Biometrische Daten (Art. 9 DSGVO)
-- [ ] Sonstige besondere Kategorien _<welche?>_
-- [ ] Anonymisierte/Pseudonymisierte Daten
+> **Form, not record.** This file in the moe-codex repo is the empty
+> template. Filled-in DPIAs live in operator-controlled storage and must
+> not be checked into this public repo.
 
 ---
 
-## 2. Verarbeitungs-Operationen in MoE Codex
+## 1. Processing description
 
-| Schritt | Komponente | Daten-Bezug |
+- **Name of processing operation:** _<use-case name>_
+- **Controller (operator):** _<entity, address>_
+- **Data Protection Officer:** _<name, email>_
+- **Status / version:** _<YYYY-MM-DD, version>_
+
+### 1.1 Purpose of processing
+_<Concrete description — not "AI support" but "preliminary review of
+building permit applications", "research on pharmaceutical side effects",
+"police situational picture for organised crime", etc.>_
+
+### 1.2 Legal basis
+- [ ] Art. 6(1)(a) (consent)
+- [ ] Art. 6(1)(b) (contract performance)
+- [ ] Art. 6(1)(c) (legal obligation) — _<which?>_
+- [ ] Art. 6(1)(e) (public interest) — _<which?>_
+- [ ] Art. 6(1)(f) (legitimate interest) — _<attach balancing test>_
+- [ ] Art. 9(2) (special categories) — _<which exception?>_
+
+### 1.3 Data subject categories
+_<e.g. applicants, patients, suspects, employees; absolute count and
+percentage of the relevant German / EU population>_
+
+### 1.4 Data categories
+- [ ] Master data (name, address, date of birth)
+- [ ] Contact data (email, phone)
+- [ ] Contract data
+- [ ] Health data (Art. 9 GDPR)
+- [ ] Criminal data (Art. 10 GDPR)
+- [ ] Biometric data (Art. 9 GDPR)
+- [ ] Other special categories — _<which?>_
+- [ ] Anonymised / pseudonymised data
+
+---
+
+## 2. Processing operations in MoE Codex
+
+| Step | Component | Personal-data scope |
 |---|---|---|
-| 2.1 Eingang von Daten | Bundle-Import via `/v1/codex/approval/import/pending` | Datenfluss in lakeFS-Branch (verschlüsselt auf MinIO) |
-| 2.2 Admin-Prüfung | `/approval` Page | Daten sichtbar für Admin-Rolle (Authentik OIDC, 2FA verpflichtend) |
-| 2.3 Approval-Entscheidung | `/v1/codex/approval/.../approve` | Auf Klick: Bundle nach Neo4j (moe-sovereign) + lakeFS-Merge |
-| 2.4 Lineage-Aufzeichnung | Marquez | Audit-Trail: wer hat wann was approved |
-| 2.5 Drift-Erkennung | `services/data_health` | Statistische Auffälligkeiten — keine PII |
-| 2.6 Catalog-Anzeige | `/catalog` | Aggregierte Metadaten, keine Roh-Inhalte |
-| 2.7 Investigative Suche | Cypher Explorer (moe-sovereign) | Read-only, Zugriff per RBAC |
-| 2.8 Löschung | `lakefs branch delete` + Neo4j-Delete-Skript | Operator-Aufgabe; Codex liefert die Werkzeuge |
+| 2.1 Data ingress | Bundle import via `/v1/codex/approval/import/pending` | Data flow into lakeFS branch (encrypted on MinIO) |
+| 2.2 Admin review | `/approval` page | Data visible to admin role (Authentik OIDC, 2FA mandatory) |
+| 2.3 Approval decision | `/v1/codex/approval/.../approve` | On click: bundle into Neo4j (moe-sovereign) + lakeFS merge |
+| 2.4 Lineage recording | Marquez | Audit trail: who approved what, when |
+| 2.5 Drift detection | `services/data_health` | Statistical anomalies — no PII |
+| 2.6 Catalog display | `/catalog` | Aggregated metadata only, no raw content |
+| 2.7 Investigative search | Cypher explorer (moe-sovereign) | Read-only, RBAC-controlled |
+| 2.8 Deletion | `lakefs branch delete` + Neo4j delete script | Operator workflow; codex supplies the tools |
 
 ---
 
-## 3. Notwendigkeit und Verhältnismäßigkeit
+## 3. Necessity and proportionality
 
-- **Eignung:** _<Warum löst MoE Codex das konkrete Problem besser als eine
-  Alternative?>_
-- **Erforderlichkeit:** _<Welche milderen Mittel wurden geprüft? Warum
-  reichen Excel, manuelle Sichtung, regelbasierte Filter nicht?>_
-- **Angemessenheit:** _<Steht der Aufwand für die Betroffenen im
-  Verhältnis zum Verarbeitungszweck?>_
+- **Suitability:** _<Why does MoE Codex solve the concrete problem better
+  than alternatives?>_
+- **Necessity:** _<Which less-intrusive means were considered? Why do
+  Excel, manual review, rule-based filters not suffice?>_
+- **Proportionality:** _<Is the burden on data subjects proportional to
+  the processing purpose?>_
 
 ---
 
-## 4. Risikobewertung für die Rechte der Betroffenen
+## 4. Risk assessment for data-subject rights
 
-### 4.1 Identifizierte Risiken
+### 4.1 Identified risks
 
-| # | Risiko | Eintrittswahrscheinlichkeit | Schweregrad |
+| # | Risk | Likelihood | Severity |
 |---|---|---|---|
-| 1 | Unbefugter Zugriff auf Bundle-Inhalte vor Approval | _<niedrig/mittel/hoch>_ | _<niedrig/mittel/hoch>_ |
-| 2 | Falsche Approval-Entscheidung führt zu falschem Eintrag im Wissensgraph | _<…>_ | _<…>_ |
-| 3 | Drift-Event-Logs enthalten unerwartet PII | _<…>_ | _<…>_ |
-| 4 | Lineage-Daten in Marquez werden für Profiling missbraucht | _<…>_ | _<…>_ |
-| 5 | Sovereignty-Bruch: Daten verlassen die EU | _<…>_ | _<…>_ |
-| 6 | _<weitere Use-Case-spezifische Risiken>_ | | |
+| 1 | Unauthorised access to bundle contents before approval | _<low/med/high>_ | _<low/med/high>_ |
+| 2 | Wrong approval decision leads to wrong entry in the knowledge graph | _<…>_ | _<…>_ |
+| 3 | Drift-event logs unexpectedly contain PII | _<…>_ | _<…>_ |
+| 4 | Lineage data in Marquez is misused for profiling | _<…>_ | _<…>_ |
+| 5 | Sovereignty breach: data leaves the EU | _<…>_ | _<…>_ |
+| 6 | _<additional use-case-specific risks>_ | | |
 
-### 4.2 Technische und organisatorische Maßnahmen
+### 4.2 Technical and organisational measures
 
-| Risiko | Maßnahme | Wo in MoE Codex |
+| Risk | Measure | Where in MoE Codex |
 |---|---|---|
-| 1 | Authentik-OIDC mit 2FA, RBAC, Marking-Layer (OPA Phase D.1.1) | `services/auth` in sovereign, `routes/approval` in codex |
-| 2 | Approval-Workflow zweistufig (Vier-Augen-Prinzip) — Operator-Konfiguration | konfigurierbar im Approval-Plugin |
-| 3 | Drift-Logs enthalten nur aggregierte Metriken (compute_drift Output) | `services/data_health.compute_drift` |
-| 4 | Marquez-Zugriff nur für Admin-Rolle; keine PII in Lineage-Events | OPA-Policy konfigurierbar |
-| 5 | EU-Host-Pflicht im Operator-Vertrag; siehe `eu_sovereignty_charter.md` | Plattform-Constraint |
+| 1 | Authentik OIDC with 2FA, RBAC, markings layer (OPA planned) | `services/auth` in sovereign, `routes/approval` in codex |
+| 2 | Two-stage approval workflow (four-eyes principle) — operator configuration | configurable in approval plugin |
+| 3 | Drift logs carry aggregate metrics only (compute_drift output) | `services/data_health.compute_drift` |
+| 4 | Marquez access restricted to admin role; no PII in lineage events | configurable via OPA policy |
+| 5 | EU-host obligation in operator contract; see `eu_sovereignty_charter.md` | platform constraint |
 
-### 4.3 Restrisiko
+### 4.3 Residual risk
 
-_<Wenn nach allen Maßnahmen noch hohes Restrisiko: Konsultation der
-Aufsichtsbehörde gemäß Art. 36 DSGVO nötig. Sonst: Begründung warum
-Restrisiko vertretbar ist.>_
+_<If residual risk remains high after all measures: consult the
+supervisory authority per Art. 36 GDPR. Otherwise: justify why the
+residual risk is acceptable.>_
 
 ---
 
-## 5. Mitwirkende und Freigabe
+## 5. Contributors and sign-off
 
-| Rolle | Name | Unterschrift | Datum |
+| Role | Name | Signature | Date |
 |---|---|---|---|
-| Operator (Verantwortlicher) | _<>_ | _<>_ | _<>_ |
-| Datenschutzbeauftragte/r | _<>_ | _<>_ | _<>_ |
-| IT-Sicherheitsbeauftragte/r | _<>_ | _<>_ | _<>_ |
-| Fachbereichsleitung | _<>_ | _<>_ | _<>_ |
+| Operator (controller) | _<>_ | _<>_ | _<>_ |
+| Data protection officer | _<>_ | _<>_ | _<>_ |
+| IT security officer | _<>_ | _<>_ | _<>_ |
+| Business owner | _<>_ | _<>_ | _<>_ |
 
 ---
 
-## 6. Überprüfungsturnus
+## 6. Review cycle
 
-- **Erst-DPIA:** _<vor Inbetriebnahme>_
-- **Reguläre Review:** jährlich oder bei wesentlicher Änderung (Art. 35 Abs. 11)
-- **Trigger für Ad-hoc-Review:**
-  - Neue Datenkategorie wird hinzugefügt
-  - Neue Empfänger-Kategorie (z.B. neuer Mandant, Bundesland)
-  - Schwerwiegender Datenschutzvorfall
-  - Wesentliches Update von MoE Codex (Major-Release)
-
----
-
-## 7. Verweis auf AI-Act-Risikoklassen-Mapping
-
-Falls das Vorhaben unter den EU AI Act fällt: zusätzlich
-[`eu_ai_act_mapping.md`](eu_ai_act_mapping.md) ausfüllen und beilegen.
-Die DPIA gemäß DSGVO ist mit der Risk-Assessment gemäß Art. 9 AIA
-strukturell kompatibel — wir empfehlen ein zusammenhängendes Dokument.
+- **Initial DPIA:** _<before go-live>_
+- **Regular review:** annually or upon material change (Art. 35(11))
+- **Ad-hoc review triggers:**
+  - New data category added
+  - New recipient category (e.g. new tenant, federal state)
+  - Serious data-protection incident
+  - Material update of MoE Codex (major release)
 
 ---
 
-*Diese Vorlage ist Stand der Technik 2026-05; sie ersetzt keine Rechtsberatung. Operator konsultiert eigene Compliance-Abteilung und ggf. die zuständige Aufsichtsbehörde.*
+## 7. Cross-reference to AI Act risk-class mapping
+
+If the use case falls under the EU AI Act: additionally complete
+[`eu_ai_act_mapping.md`](eu_ai_act_mapping.md) and attach it. The DPIA
+under GDPR is structurally compatible with the risk assessment under
+AIA Art. 9 — we recommend a single combined document.
+
+---
+
+*This template reflects the state of the art as of 2026-05; it does not
+replace legal advice. Operators consult their own compliance function
+and, where applicable, the competent supervisory authority.*
