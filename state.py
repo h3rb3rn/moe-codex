@@ -13,3 +13,4 @@ if TYPE_CHECKING:
 redis_client: Optional["Redis"] = None
 sovereign_reachable: bool = False
 enterprise_reachable: bool = False
+opa_reachable: bool = False

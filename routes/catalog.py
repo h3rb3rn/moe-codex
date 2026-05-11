@@ -11,7 +11,7 @@ from __future__ import annotations
 import os
 
 import httpx
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
 
 from services.sovereign_client import graph_domains
 from services.lineage import _enabled as lineage_enabled
@@ -74,8 +74,13 @@ async def _lakefs_repositories() -> list[dict]:
 
 
 @router.get("/catalog/datasets")
-async def catalog_datasets():
-    """Aggregate Marquez datasets + Neo4j domains + lakeFS repos."""
+async def catalog_datasets(request: Request):
+    """Aggregate Marquez datasets + Neo4j domains + lakeFS repos.
+
+    OPA filters the result list: only datasets the requesting user may read
+    are returned. When OPA is not configured (OPA_ENABLED=false) all items
+    are returned (backward compatible with un-enforced deployments).
+    """
     items: list[dict] = []
     totals: dict[str, int] = {"marquez": 0, "neo4j": 0, "lakefs": 0}
 
@@ -133,4 +138,25 @@ async def catalog_datasets():
         except Exception:
             pass
 
+    # OPA filtering — items without a classification default to PUBLIC (always visible)
+    from services.opa import catalog_allow, _extract_user, OPA_ENABLED
+    if OPA_ENABLED:
+        user = _extract_user(dict(request.headers))
+        filtered: list[dict] = []
+        for item in items:
+            ds = {
+                "name":            item.get("name", ""),
+                "namespace":       item.get("namespace", ""),
+                "classification":  item.get("classification", "PUBLIC"),
+                "owner_group":     item.get("owner_group", ""),
+            }
+            if await catalog_allow(user, ds, "read"):
+                filtered.append(item)
+        items = filtered
+
+    totals = {
+        "marquez": sum(1 for i in items if i["source"] == "marquez"),
+        "neo4j":   sum(1 for i in items if i["source"] == "neo4j"),
+        "lakefs":  sum(1 for i in items if i["source"] == "lakefs"),
+    }
     return {"items": items, "totals": totals}

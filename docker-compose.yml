@@ -25,6 +25,8 @@ services:
     ports:
       - "${CODEX_HOST_PORT:-8090}:8090"
     depends_on:
+      moe-opa:
+        condition: service_healthy
       moe-marquez:
         condition: service_healthy
       moe-lakefs:
@@ -38,6 +40,35 @@ services:
         limits:
           cpus: "1.0"
           memory: 768M
+
+  # ── OPA — Open Policy Agent (access control) ────────────────────────────────
+  moe-opa:
+    image: openpolicyagent/opa:latest-static
+    container_name: moe-opa
+    restart: unless-stopped
+    command:
+      - "run"
+      - "--server"
+      - "--addr=0.0.0.0:8181"
+      - "--log-level=info"
+      - "/policies"
+    volumes:
+      - ./policies:/policies:ro
+    ports:
+      - "${OPA_HOST_PORT:-8282}:8181"
+    networks:
+      - moe_net
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O - http://localhost:8181/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 256M
 
   # ── Apache NiFi — Data Flow Automation ──────────────────────────────────────
   # NiFi 1.14+ single-user-mode enforces HTTPS for /access/token. We therefore

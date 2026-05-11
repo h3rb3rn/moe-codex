@@ -66,13 +66,19 @@ async def approval_approve(branch: str, raw_request: Request):
     """Approve a pending branch.
 
     Flow:
-        1. Read bundle from branch head metadata
-        2. Snapshot graph stats via moe-sovereign
-        3. POST bundle to moe-sovereign /v1/graph/knowledge/import
-        4. Re-snapshot graph stats
-        5. Compute drift, record event to local Redis
-        6. Merge lakeFS branch into main
+        1. OPA permission check — requires approver or admin group
+        2. Read bundle from branch head metadata
+        3. Snapshot graph stats via moe-sovereign
+        4. POST bundle to moe-sovereign /v1/graph/knowledge/import
+        5. Re-snapshot graph stats
+        6. Compute drift, record event to local Redis
+        7. Merge lakeFS branch into main
     """
+    from services.opa import approval_allow, _extract_user
+    user = _extract_user(dict(raw_request.headers))
+    if not await approval_allow(user, "approve"):
+        return JSONResponse(status_code=403, content={"error": "Forbidden — approver or admin group required"})
+
     from services.versioning import (
         get_bundle_from_branch, approve_branch as approve_lakefs_branch,
         _enabled as versioning_enabled,
@@ -139,6 +145,11 @@ async def approval_approve(branch: str, raw_request: Request):
 @router.post("/approval/{branch:path}/reject")
 async def approval_reject(branch: str, raw_request: Request):
     """Reject a pending branch: delete it without importing."""
+    from services.opa import approval_allow, _extract_user
+    user = _extract_user(dict(raw_request.headers))
+    if not await approval_allow(user, "reject"):
+        return JSONResponse(status_code=403, content={"error": "Forbidden — approver or admin group required"})
+
     from services.versioning import reject_branch, _enabled as versioning_enabled
     if not versioning_enabled():
         return JSONResponse(status_code=503, content={"error": "lakeFS not configured"})

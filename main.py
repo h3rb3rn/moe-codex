@@ -37,6 +37,10 @@ async def lifespan(app: FastAPI):
     state.sovereign_reachable = await sovereign_health()
     logger.info("moe-sovereign reachable: %s", state.sovereign_reachable)
 
+    from services.opa import health_check as opa_health
+    state.opa_reachable = await opa_health()
+    logger.info("OPA reachable: %s", state.opa_reachable)
+
     try:
         from services.lineage import _enabled as lineage_enabled
         from services.versioning import _enabled as versioning_enabled
@@ -79,6 +83,7 @@ async def codex_status() -> dict:
     from services.lineage import _enabled as lineage_enabled
     from services.versioning import _enabled as versioning_enabled
     from services.etl_pipeline import _submit_enabled as etl_enabled
+    from services.opa import health_check as opa_health, OPA_ENABLED
     return {
         "service": "moe-codex",
         "sovereign_reachable": await sovereign_health(),
@@ -86,17 +91,20 @@ async def codex_status() -> dict:
         "versioning_enabled":  versioning_enabled(),
         "etl_enabled":         etl_enabled(),
         "redis_reachable":     state.redis_client is not None,
+        "opa_enabled":         OPA_ENABLED,
+        "opa_reachable":       state.opa_reachable,
     }
 
 
 # ─── Router wiring ──────────────────────────────────────────────────────────
 
-from routes.approval  import router as approval_router
-from routes.catalog   import router as catalog_router
-from routes.health    import router as health_router
-from routes.lineage   import router as lineage_router
+from routes.approval   import router as approval_router
+from routes.catalog    import router as catalog_router
+from routes.health     import router as health_router
+from routes.lineage    import router as lineage_router
 from routes.versioning import router as versioning_router
-from routes.etl       import router as etl_router
+from routes.etl        import router as etl_router
+from routes.opa        import router as opa_router
 
 app.include_router(approval_router,   prefix="/v1/codex")
 app.include_router(catalog_router,    prefix="/v1/codex")
@@ -104,6 +112,7 @@ app.include_router(health_router,     prefix="/v1/codex")
 app.include_router(lineage_router,    prefix="/v1/codex")
 app.include_router(versioning_router, prefix="/v1/codex")
 app.include_router(etl_router,        prefix="/v1/codex")
+app.include_router(opa_router)
 
 
 @app.exception_handler(Exception)
