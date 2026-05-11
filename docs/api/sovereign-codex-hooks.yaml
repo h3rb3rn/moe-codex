@@ -1,0 +1,85 @@
+openapi: 3.1.0
+info:
+  title: moe-sovereign endpoints consumed by moe-codex
+  version: 0.1.0
+  description: |
+    moe-sovereign exposes these endpoints for moe-codex to consume.
+    They MUST remain stable across moe-sovereign releases.
+
+paths:
+  /health:
+    get:
+      summary: Sovereign reachability probe
+      responses:
+        '200': { description: Up }
+
+  /v1/graph/stats:
+    get:
+      summary: Aggregate graph statistics (entities, relations, syntheses)
+      description: Used by codex for drift snapshots before and after approval-driven imports.
+      responses:
+        '200':
+          description: Stats
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  entities:  { type: integer }
+                  relations: { type: integer }
+
+  /v1/graph/domains:
+    get:
+      summary: List entity domains with per-domain entity/relation/synthesis counts
+      description: Used by codex catalog to populate the Neo4j source.
+      responses:
+        '200': { description: Domains }
+
+  /v1/graph/search:
+    get:
+      summary: Hybrid vector + graph search
+      parameters:
+        - { name: q, in: query, required: true, schema: { type: string } }
+        - { name: limit, in: query, schema: { type: integer, default: 10 } }
+      responses:
+        '200': { description: Search results }
+
+  /v1/graph/knowledge/import:
+    post:
+      summary: Import a knowledge bundle into Neo4j
+      description: |
+        Codex calls this from `/v1/codex/approval/{branch}/approve` after the
+        admin has approved the bundle on a lakeFS pending branch. Trust-floor
+        and source-tag are passed through.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                bundle:      { type: object }
+                source_tag:  { type: string }
+                trust_floor: { type: number }
+      responses:
+        '200': { description: Imported }
+
+  /v1/graph/cypher/read:
+    post:
+      summary: Read-only Cypher query
+      description: |
+        Used by the Codex Object Explorer template. Two-layer write protection
+        is enforced server-side: regex blacklist + Neo4j READ_ACCESS session.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                query:      { type: string }
+                parameters: { type: object }
+                limit:      { type: integer, default: 100 }
+      responses:
+        '200': { description: Rows }
+        '400': { description: Write keyword found in query }

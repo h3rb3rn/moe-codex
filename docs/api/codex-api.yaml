@@ -1,0 +1,132 @@
+openapi: 3.1.0
+info:
+  title: MoE Codex API
+  version: 0.1.0
+  description: |
+    EU-sovereign data and audit platform. Optional add-on to moe-sovereign.
+    All endpoints live under `/v1/codex/*`.
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+
+servers:
+  - url: http://moe-codex-api:8090
+    description: In-cluster (Docker network)
+  - url: http://localhost:8090
+    description: Local development
+
+paths:
+  /health:
+    get:
+      summary: Lightweight health probe
+      responses:
+        '200':
+          description: Service is up
+          content:
+            application/json:
+              schema: { type: object }
+
+  /v1/codex/status:
+    get:
+      summary: Detailed status including upstream reachability
+      responses:
+        '200':
+          description: Status snapshot
+          content:
+            application/json:
+              schema: { type: object }
+
+  /v1/codex/catalog/datasets:
+    get:
+      summary: Aggregated dataset list (Marquez + Neo4j domains + lakeFS repos)
+      responses:
+        '200':
+          description: Dataset list
+          content:
+            application/json:
+              schema: { type: object }
+
+  /v1/codex/approval/import/pending:
+    post:
+      summary: Stage a knowledge bundle on a lakeFS pending branch
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                bundle:     { type: object }
+                source_tag: { type: string }
+      responses:
+        '200': { description: Pending }
+        '400': { description: Invalid bundle }
+        '503': { description: lakeFS not configured }
+
+  /v1/codex/approval/list:
+    get:
+      summary: List pending approval branches
+      responses:
+        '200': { description: Pending branches }
+
+  /v1/codex/approval/{branch}/approve:
+    post:
+      summary: Approve a pending branch — pushes bundle to moe-sovereign and merges lakeFS
+      parameters:
+        - { name: branch, in: path, required: true, schema: { type: string } }
+      responses:
+        '200': { description: Approved + drift snapshot }
+        '404': { description: No bundle on branch }
+        '502': { description: Sovereign import failed }
+
+  /v1/codex/approval/{branch}/reject:
+    post:
+      summary: Reject a pending branch (delete without import)
+      parameters:
+        - { name: branch, in: path, required: true, schema: { type: string } }
+      responses:
+        '200': { description: Rejected }
+
+  /v1/codex/health/events:
+    get:
+      summary: Recent data-health drift events
+      parameters:
+        - { name: limit, in: query, schema: { type: integer, default: 50 } }
+      responses:
+        '200': { description: Drift events }
+
+  /v1/codex/lineage/event:
+    post:
+      summary: Receive OpenLineage event and forward to Marquez
+      responses:
+        '200': { description: Forwarded }
+
+  /v1/codex/lineage/runs:
+    get:
+      summary: List recent lineage runs from Marquez
+      responses:
+        '200': { description: Runs }
+
+  /v1/codex/versioning/commit:
+    post:
+      summary: Archive a knowledge bundle as a lakeFS commit on main
+      responses:
+        '200': { description: Committed }
+
+  /v1/codex/versioning/commits:
+    get:
+      summary: List recent lakeFS commits
+      responses:
+        '200': { description: Commits }
+
+  /v1/codex/etl/submit:
+    post:
+      summary: Forward a payload to NiFi ListenHTTP
+      responses:
+        '200': { description: Submitted }
+
+  /v1/codex/etl/status:
+    get:
+      summary: NiFi system diagnostics
+      responses:
+        '200': { description: Status }
