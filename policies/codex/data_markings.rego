@@ -12,19 +12,19 @@ classification_level := {
 
 default user_clearance_level := 0
 
-user_clearance_level := classification_level[input.user.clearance] {
+user_clearance_level := classification_level[input.user.clearance] if {
     input.user.clearance != ""
 }
 
 default dataset_classification_level := 0
 
-dataset_classification_level := classification_level[input.dataset.classification] {
+dataset_classification_level := classification_level[input.dataset.classification] if {
     input.dataset.classification != ""
 }
 
 # allow if user clearance >= dataset classification
 default allow := false
 
-allow {
+allow if {
     user_clearance_level >= dataset_classification_level
 }

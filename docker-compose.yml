@@ -52,12 +52,14 @@ services:
     image: ghcr.io/mlflow/mlflow:v2.14.3
     container_name: moe-mlflow
     restart: unless-stopped
+    entrypoint: /bin/sh
     command: >
+      -c "pip install psycopg2-binary --quiet &&
       mlflow server
       --backend-store-uri postgresql://mlflow:${MLFLOW_DB_PASSWORD:-mlflow-changeme}@mlflow-postgres:5432/mlflow
       --default-artifact-root /mlflow/artifacts
       --host 0.0.0.0
-      --port 5001
+      --port 5001"
     volumes:
       - mlflow_artifacts:/mlflow/artifacts
     ports:
@@ -68,7 +70,7 @@ services:
     networks:
       - moe_net
     healthcheck:
-      test: ["CMD-SHELL", "curl -sf http://localhost:5001/health || exit 1"]
+      test: ["CMD", "python3", "-c", "import urllib.request,sys; r=urllib.request.urlopen('http://localhost:5001/health'); sys.exit(0 if r.status==200 else 1)"]
       interval: 20s
       timeout: 5s
       retries: 5
@@ -99,7 +101,7 @@ services:
 
   # ── OPA — Open Policy Agent (access control) ────────────────────────────────
   moe-opa:
-    image: openpolicyagent/opa:latest-static
+    image: openpolicyagent/opa:latest-debug
     container_name: moe-opa
     restart: unless-stopped
     command:
@@ -270,7 +272,7 @@ services:
     networks:
       - moe_net
     healthcheck:
-      test: ["CMD-SHELL", "curl -sf http://localhost:7080/health | grep -q '\"status\":\"ok\"' || exit 1"]
+      test: ["CMD", "python3", "-c", "import urllib.request,sys; r=urllib.request.urlopen('http://localhost:7080/health'); sys.exit(0 if r.status==200 else 1)"]
       interval: 20s
       timeout: 10s
       retries: 5
@@ -283,14 +285,13 @@ services:
 
   # ── Trino — Distributed SQL Federation ─────────────────────────────────────
   moe-trino:
-    image: trinodb/trino:latest
+    image: trinodb/trino:426
     container_name: moe-trino
     restart: unless-stopped
     ports:
       - "${TRINO_HOST_PORT:-8080}:8080"
     volumes:
       - ./trino/etc:/etc/trino:ro
-      - ./trino/catalog:/etc/trino/catalog:ro
     networks:
       - moe_net
     healthcheck:

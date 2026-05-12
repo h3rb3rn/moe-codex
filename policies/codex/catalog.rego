@@ -10,12 +10,12 @@ import data.codex.data_markings
 default allow := false
 
 # Admins may do anything.
-allow {
+allow if {
     "admin" in input.user.groups
 }
 
 # Read access: user clearance must satisfy data marking.
-allow {
+allow if {
     input.action == "read"
     data.codex.data_markings.allow with input as {
         "user":    input.user,
@@ -24,7 +24,7 @@ allow {
 }
 
 # Write access: user must belong to the dataset's owner group (or be admin).
-allow {
+allow if {
     input.action == "write"
     input.dataset.owner_group != ""
     input.dataset.owner_group in input.user.groups
