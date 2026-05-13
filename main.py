@@ -128,6 +128,12 @@ async def codex_status() -> dict:
 # ─── Router wiring ──────────────────────────────────────────────────────────
 
 from routes.approval   import router as approval_router
+from routes.graph_viz  import router as graph_viz_router
+from routes.timeline   import router as timeline_router
+from routes.kestra     import router as kestra_router
+from routes.forms      import router as forms_router
+from routes.search     import router as search_router
+from routes.charts     import router as charts_router
 from routes.catalog    import router as catalog_router
 from routes.health     import router as health_router
 from routes.lineage    import router as lineage_router
@@ -140,6 +146,12 @@ from routes.trino      import router as trino_router
 from routes.documents  import router as documents_router
 
 app.include_router(approval_router,   prefix="/v1/codex")
+app.include_router(graph_viz_router,  prefix="/v1/codex")
+app.include_router(timeline_router,   prefix="/v1/codex")
+app.include_router(kestra_router,     prefix="/v1/codex")
+app.include_router(forms_router,      prefix="/v1/codex")
+app.include_router(search_router,     prefix="/v1/codex")
+app.include_router(charts_router,     prefix="/v1/codex")
 app.include_router(catalog_router,    prefix="/v1/codex")
 app.include_router(health_router,     prefix="/v1/codex")
 app.include_router(lineage_router,    prefix="/v1/codex")

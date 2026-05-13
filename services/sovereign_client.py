@@ -5,6 +5,7 @@ The Codex backend calls moe-sovereign only at clearly defined boundaries:
 - POST /graph/knowledge/import   — when an approval is granted, push the bundle through
 - GET  /graph/search             — when the catalog needs to enrich a row
 - GET  /graph/domains            — for the Neo4j source in /catalog
+- POST /graph/cypher/read        — read-only Cypher for link-analysis / timeline
 
 Note: moe-sovereign mounts the graph router without a `/v1` prefix.
 The router prefix is configurable via SOVEREIGN_GRAPH_PREFIX (default empty).
@@ -54,6 +55,19 @@ async def knowledge_import(bundle: dict[str, Any], source_tag: str,
         r = await c.post(
             f"{SOVEREIGN_URL}{GRAPH_PREFIX}/graph/knowledge/import",
             json=payload, headers=_headers(),
+        )
+        r.raise_for_status()
+        return r.json()
+
+
+async def cypher_read(query: str, parameters: dict | None = None,
+                      limit: int = 200) -> dict[str, Any]:
+    """Execute a read-only Cypher query via sovereign's /graph/cypher/read endpoint."""
+    async with httpx.AsyncClient(timeout=SOVEREIGN_TIMEOUT) as c:
+        r = await c.post(
+            f"{SOVEREIGN_URL}{GRAPH_PREFIX}/graph/cypher/read",
+            json={"query": query, "parameters": parameters or {}, "limit": limit},
+            headers=_headers(),
         )
         r.raise_for_status()
         return r.json()

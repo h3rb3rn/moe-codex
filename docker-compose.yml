@@ -346,6 +346,65 @@ services:
           cpus: "1.0"
           memory: 512M
 
+  # ── Kestra pipeline builder ───────────────────────────────────────────────
+  moe-kestra:
+    image: kestra/kestra:latest
+    container_name: moe-kestra
+    command: server standalone
+    environment:
+      KESTRA_CONFIGURATION: |
+        datasources:
+          postgres:
+            url: jdbc:postgresql://moe-kestra-db:5432/kestra
+            driverClassName: org.postgresql.Driver
+            username: kestra
+            password: kestra
+        kestra:
+          server:
+            basic-auth:
+              enabled: false
+          repository:
+            type: postgres
+          storage:
+            type: local
+            local:
+              base-path: /app/storage
+          queue:
+            type: postgres
+    volumes:
+      - kestra_storage:/app/storage
+    ports:
+      - "${KESTRA_HOST_PORT:-8082}:8080"
+    depends_on:
+      moe-kestra-db:
+        condition: service_healthy
+    networks:
+      - moe_net
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "1.5"
+          memory: 1G
+
+  moe-kestra-db:
+    image: postgres:16-alpine
+    container_name: moe-kestra-db
+    environment:
+      POSTGRES_DB:       kestra
+      POSTGRES_USER:     kestra
+      POSTGRES_PASSWORD: kestra
+    volumes:
+      - kestra_db_data:/var/lib/postgresql/data
+    networks:
+      - moe_net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U kestra"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
 # =============================================================================
 volumes:
   nifi_data:
@@ -355,6 +414,8 @@ volumes:
   lakefs_db_data:
   mlflow_artifacts:
   mlflow_db_data:
+  kestra_storage:
+  kestra_db_data:
 
 networks:
   # Joins the moe-sovereign network so codex services can reach
