@@ -57,6 +57,40 @@ async def lifespan(app: FastAPI):
     state.docling_reachable = await docling_health()
     logger.info("DocLing reachable: %s", state.docling_reachable)
 
+    from services.superset import health_check as superset_health
+    state.superset_reachable = await superset_health()
+    logger.info("Superset reachable: %s", state.superset_reachable)
+
+    from services.opensearch_client import health_check as opensearch_health, ensure_index
+    state.opensearch_reachable = await opensearch_health()
+    logger.info("OpenSearch reachable: %s", state.opensearch_reachable)
+    if state.opensearch_reachable:
+        await ensure_index()
+
+    from services.compliance import falco_health
+    state.falco_reachable = await falco_health()
+    logger.info("Falco reachable: %s", state.falco_reachable)
+
+    from services.kestra import health_check as kestra_health
+    state.kestra_reachable = await kestra_health()
+    logger.info("Kestra reachable: %s", state.kestra_reachable)
+
+    from services.budibase import health_check as budibase_health
+    state.budibase_reachable = await budibase_health()
+    logger.info("Budibase reachable: %s", state.budibase_reachable)
+
+    from services.timeseries import health_check as timeseries_health
+    state.timeseries_reachable = await timeseries_health()
+    logger.info("TimescaleDB reachable: %s", state.timeseries_reachable)
+
+    from services.hedgedoc import health_check as hedgedoc_health
+    state.hedgedoc_reachable = await hedgedoc_health()
+    logger.info("HedgeDoc reachable: %s", state.hedgedoc_reachable)
+
+    from services.geospatial import health_check as geo_health
+    state.geo_reachable = await geo_health()
+    logger.info("PostGIS/Geo reachable: %s", state.geo_reachable)
+
     try:
         from services.lineage import _enabled as lineage_enabled
         from services.versioning import _enabled as versioning_enabled
@@ -120,8 +154,16 @@ async def codex_status() -> dict:
         "guardrails_patterns": len(gr_config.get("patterns", {})),
         "trino_enabled":       TRINO_ENABLED,
         "trino_reachable":     state.trino_reachable,
-        "docling_enabled":     DOCLING_ENABLED,
-        "docling_reachable":   state.docling_reachable,
+        "docling_enabled":       DOCLING_ENABLED,
+        "docling_reachable":     state.docling_reachable,
+        "superset_reachable":    state.superset_reachable,
+        "opensearch_reachable":  state.opensearch_reachable,
+        "falco_reachable":       state.falco_reachable,
+        "kestra_reachable":      state.kestra_reachable,
+        "budibase_reachable":    state.budibase_reachable,
+        "timeseries_reachable":  state.timeseries_reachable,
+        "hedgedoc_reachable":    state.hedgedoc_reachable,
+        "geo_reachable":         state.geo_reachable,
     }
 
 
@@ -144,6 +186,12 @@ from routes.eval       import router as eval_router
 from routes.guardrails import router as guardrails_router
 from routes.trino      import router as trino_router
 from routes.documents  import router as documents_router
+from routes.superset   import router as superset_router
+from routes.compliance import router as compliance_router
+from routes.workshop   import router as workshop_router
+from routes.timeseries import router as timeseries_router
+from routes.notes      import router as notes_router
+from routes.geo        import router as geo_router
 
 app.include_router(approval_router,   prefix="/v1/codex")
 app.include_router(graph_viz_router,  prefix="/v1/codex")
@@ -162,6 +210,12 @@ app.include_router(eval_router)
 app.include_router(guardrails_router)
 app.include_router(trino_router)
 app.include_router(documents_router)
+app.include_router(superset_router,   prefix="/v1/codex")
+app.include_router(compliance_router, prefix="/v1/codex")
+app.include_router(workshop_router,   prefix="/v1/codex")
+app.include_router(timeseries_router, prefix="/v1/codex")
+app.include_router(notes_router,      prefix="/v1/codex")
+app.include_router(geo_router,        prefix="/v1/codex")
 
 
 @app.exception_handler(Exception)

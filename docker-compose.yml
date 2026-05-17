@@ -405,6 +405,325 @@ services:
       retries: 5
     restart: unless-stopped
 
+  # ── Budibase — Low-Code Workshop parity ─────────────────────────────────
+  moe-budibase:
+    image: budibase/budibase:latest
+    container_name: moe-budibase
+    environment:
+      BB_ADMIN_USER_EMAIL:    "${BUDIBASE_ADMIN_EMAIL:-admin@codex.local}"
+      BB_ADMIN_USER_PASSWORD: "${BUDIBASE_ADMIN_PASS:-SovereignLCA!}"
+      JWT_SECRET:             "${BUDIBASE_JWT_SECRET:-change-me-budibase-jwt}"
+      ENCRYPTION_KEY:         "${BUDIBASE_ENCRYPTION_KEY:-change-me-encrypt}"
+      SELF_HOSTED:            "1"
+      REDIS_URL:              "redis://moe-budibase-redis:6379"
+    ports:
+      - "${BUDIBASE_HOST_PORT:-10000}:10000"
+    depends_on:
+      - moe-budibase-redis
+    volumes:
+      - budibase_data:/home/node/.config
+    networks:
+      - moe_net
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 1G
+
+  moe-budibase-redis:
+    image: redis:7-alpine
+    container_name: moe-budibase-redis
+    networks:
+      - moe_net
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+
+  # ── TimescaleDB — Time Series Catalog ────────────────────────────────────
+  moe-timescaledb:
+    image: timescale/timescaledb:latest-pg16
+    container_name: moe-timescaledb
+    environment:
+      POSTGRES_DB:       timeseries
+      POSTGRES_USER:     codex
+      POSTGRES_PASSWORD: "${TIMESCALE_DB_PASSWORD:-timescale-changeme}"
+    volumes:
+      - timescale_data:/var/lib/postgresql/data
+    networks:
+      - moe_net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U codex -d timeseries"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 512M
+
+  moe-timescale-rest:
+    image: postgrest/postgrest:v12.0.2
+    container_name: moe-timescale-rest
+    environment:
+      PGRST_DB_URI:           "postgres://codex:${TIMESCALE_DB_PASSWORD:-timescale-changeme}@moe-timescaledb:5432/timeseries"
+      PGRST_DB_SCHEMAS:       "codex"
+      PGRST_DB_ANON_ROLE:     "codex"
+      PGRST_OPENAPI_SERVER_PROXY_URI: "http://moe-timescale-rest:3000"
+    ports:
+      - "${TIMESCALE_REST_PORT:-3001}:3000"
+    depends_on:
+      moe-timescaledb:
+        condition: service_healthy
+    networks:
+      - moe_net
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "0.3"
+          memory: 128M
+
+  # ── HedgeDoc — Collaborative Notes / Reports ─────────────────────────────
+  moe-hedgedoc:
+    image: hedgedoc/hedgedoc:latest
+    container_name: moe-hedgedoc
+    environment:
+      CMD_DB_URL:             "postgres://hedgedoc:${HEDGEDOC_DB_PASSWORD:-hedgedoc-changeme}@moe-hedgedoc-db:5432/hedgedoc"
+      CMD_DOMAIN:             "${HEDGEDOC_DOMAIN:-localhost}"
+      CMD_URL_ADDPORT:        "false"
+      CMD_PROTOCOL_USESSL:    "false"
+      CMD_ALLOW_ANONYMOUS:    "true"
+      CMD_ALLOW_ANONYMOUS_EDITS: "true"
+      CMD_SESSION_SECRET:     "${HEDGEDOC_SESSION_SECRET:-change-me-hedgedoc-secret}"
+      CMD_EMAIL:              "true"
+      CMD_ALLOW_EMAIL_REGISTER: "true"
+    ports:
+      - "${HEDGEDOC_HOST_PORT:-3002}:3000"
+    depends_on:
+      moe-hedgedoc-db:
+        condition: service_healthy
+    volumes:
+      - hedgedoc_uploads:/hedgedoc/public/uploads
+    networks:
+      - moe_net
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 512M
+
+  moe-hedgedoc-db:
+    image: postgres:16-alpine
+    container_name: moe-hedgedoc-db
+    environment:
+      POSTGRES_DB:       hedgedoc
+      POSTGRES_USER:     hedgedoc
+      POSTGRES_PASSWORD: "${HEDGEDOC_DB_PASSWORD:-hedgedoc-changeme}"
+    volumes:
+      - hedgedoc_db_data:/var/lib/postgresql/data
+    networks:
+      - moe_net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hedgedoc"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # ── PostGIS — Geospatial Investigation ───────────────────────────────────
+  moe-postgis:
+    image: postgis/postgis:16-3.4
+    container_name: moe-postgis
+    environment:
+      POSTGRES_DB:       geodata
+      POSTGRES_USER:     codex_geo
+      POSTGRES_PASSWORD: "${POSTGIS_DB_PASSWORD:-postgis-changeme}"
+    volumes:
+      - postgis_data:/var/lib/postgresql/data
+    networks:
+      - moe_net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U codex_geo -d geodata"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 512M
+
+  moe-geo-rest:
+    image: postgrest/postgrest:v12.0.2
+    container_name: moe-geo-rest
+    environment:
+      PGRST_DB_URI:           "postgres://codex_geo:${POSTGIS_DB_PASSWORD:-postgis-changeme}@moe-postgis:5432/geodata"
+      PGRST_DB_SCHEMAS:       "codex_geo"
+      PGRST_DB_ANON_ROLE:     "codex_geo"
+      PGRST_OPENAPI_SERVER_PROXY_URI: "http://moe-geo-rest:3000"
+    ports:
+      - "${GEO_REST_PORT:-3003}:3000"
+    depends_on:
+      moe-postgis:
+        condition: service_healthy
+    networks:
+      - moe_net
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "0.3"
+          memory: 128M
+
+  # ── Apache Superset — BI / Quiver parity ────────────────────────────────
+  moe-superset:
+    image: apache/superset:latest
+    container_name: moe-superset
+    command: >
+      /bin/sh -c "
+        superset db upgrade &&
+        superset fab create-admin
+          --username $${SUPERSET_ADMIN_USER:-admin}
+          --firstname Sovereign
+          --lastname Admin
+          --email $${SUPERSET_ADMIN_EMAIL:-admin@codex.local}
+          --password $${SUPERSET_ADMIN_PASS:-SovereignBI!} 2>/dev/null || true &&
+        superset init &&
+        gunicorn --bind 0.0.0.0:8088
+          --workers 2 --timeout 120
+          'superset.app:create_app()'
+      "
+    environment:
+      SUPERSET_SECRET_KEY:    "${SUPERSET_SECRET_KEY:-change-me-superset-secret-key}"
+      SQLALCHEMY_DATABASE_URI: "postgresql+psycopg2://superset:superset@moe-superset-db:5432/superset"
+      SUPERSET_LOAD_EXAMPLES:  "false"
+      FLASK_ENV:               production
+      # Allow embedding in the Codex admin UI
+      WTF_CSRF_ENABLED:        "false"
+      TALISMAN_ENABLED:        "false"
+    ports:
+      - "${SUPERSET_HOST_PORT:-8088}:8088"
+    depends_on:
+      moe-superset-db:
+        condition: service_healthy
+    networks:
+      - moe_net
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: 2G
+
+  moe-superset-db:
+    image: postgres:16-alpine
+    container_name: moe-superset-db
+    environment:
+      POSTGRES_DB:       superset
+      POSTGRES_USER:     superset
+      POSTGRES_PASSWORD: superset
+    volumes:
+      - superset_db_data:/var/lib/postgresql/data
+    networks:
+      - moe_net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U superset"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # ── OpenSearch — federated full-text search ──────────────────────────────
+  moe-opensearch:
+    image: opensearchproject/opensearch:2
+    container_name: moe-opensearch
+    environment:
+      discovery.type:            single-node
+      DISABLE_SECURITY_PLUGIN:   "true"
+      OPENSEARCH_JAVA_OPTS:      "-Xms512m -Xmx512m"
+      bootstrap.memory_lock:     "true"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - opensearch_data:/usr/share/opensearch/data
+    ports:
+      - "${OPENSEARCH_HOST_PORT:-9200}:9200"
+    networks:
+      - moe_net
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s http://localhost:9200/_cluster/health | grep -qE '\"status\":\"(green|yellow)\"'"]
+      interval: 20s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 1G
+
+  moe-opensearch-dashboards:
+    image: opensearchproject/opensearch-dashboards:2
+    container_name: moe-opensearch-dashboards
+    environment:
+      OPENSEARCH_HOSTS:                      '["http://moe-opensearch:9200"]'
+      DISABLE_SECURITY_DASHBOARDS_PLUGIN:    "true"
+    ports:
+      - "${OPENSEARCH_DASHBOARDS_PORT:-5601}:5601"
+    depends_on:
+      moe-opensearch:
+        condition: service_healthy
+    networks:
+      - moe_net
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 512M
+
+  # ── Falco — runtime security / threat detection ──────────────────────────
+  moe-falco:
+    image: falcosecurity/falco-no-driver:latest
+    container_name: moe-falco
+    privileged: true
+    pid: host
+    volumes:
+      - /var/run/docker.sock:/host/var/run/docker.sock:ro
+      - /proc:/host/proc:ro
+      - /dev:/host/dev:ro
+      - /sys/kernel/debug:/sys/kernel/debug:ro
+      - falco_rules:/etc/falco/rules.d
+      - falco_events:/var/log/falco
+    environment:
+      FALCO_BPF_PROBE:     ""
+    command: >
+      falco
+        --modern-bpf
+        -o "json_output=true"
+        -o "file_output.enabled=true"
+        -o "file_output.filename=/var/log/falco/events.json"
+        -o "http_output.enabled=false"
+        --disable-cri-socket
+    networks:
+      - moe_net
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 256M
+
 # =============================================================================
 volumes:
   nifi_data:
@@ -416,6 +735,15 @@ volumes:
   mlflow_db_data:
   kestra_storage:
   kestra_db_data:
+  budibase_data:
+  timescale_data:
+  hedgedoc_uploads:
+  hedgedoc_db_data:
+  postgis_data:
+  superset_db_data:
+  opensearch_data:
+  falco_rules:
+  falco_events:
 
 networks:
   # Joins the moe-sovereign network so codex services can reach
