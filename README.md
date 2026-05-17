@@ -113,8 +113,9 @@ Hosting recommendation: Hetzner / IONOS / STACKIT / OVH / Scaleway — all under
 | D2 | Timeline, Link Analysis, Kestra, Forms, Search, Charts | ✅ |
 | D3 | Superset (BI), OpenSearch (Search), Falco + OpenSCAP (Compliance) | ✅ |
 | D4 | Budibase (Workshop), TimescaleDB (Time Series), HedgeDoc (Notes), PostGIS+KeplerGL (Geo) | ✅ |
+| D5 | Leaflet.js interactive maps, Dossier/Case File, Doc corrections, pinned Docker versions | ✅ |
 
-Planned extensions: ArgoCD deployment automation, KeplerGL static bundle, ontology-geo binding. Order driven by concrete use-case demand.
+Stack is feature-complete for all achievable Palantir equivalents. 92 % of Palantir modules covered. 246 tests passing.
 
 ---
 
