@@ -24,7 +24,7 @@ positioning, gap analysis, and roadmap discussions.
 |---|---|---|---|---|
 | 1.1 | **Ontology** | Typed object model with properties, relations, methods, Action Types — single source of truth for business objects | 🟢 Neo4j knowledge graph with Entity/Relation, GraphRAG manager + domain mapping | **Erweiterbar** with Pydantic schemas for object types + Apache Atlas (formal ontology layer) or LinkML |
 | 1.2 | **Data Connection** | ~200 prebuilt connectors (SAP, Oracle, Salesforce, REST, file, JDBC) | 🟢 NiFi `ListenHTTP` + knowledge bundle import (Phase 17) | **Erweiterbar** with Apache NiFi (300+ processors), Airbyte (350+ connectors), Meltano |
-| 1.3 | **Pipeline Builder (visual ETL)** | Drag-and-drop ETL DSL with Spark backend | 🟡 NiFi UI (visual) but no code generator | **Ergänzbar** with Apache Hop, Kestra, Dagster (semi-visual), Mage AI |
+| 1.3 | **Pipeline Builder (visual ETL)** | Drag-and-drop ETL DSL with Spark backend | 🟢 NiFi drag-drop UI (D1) + Kestra YAML pipeline builder (D2) | NiFi: visual canvas; Kestra: code-based with namespace/trigger; both wired to `/etl` + `/kestra` |
 | 1.4 | **Code Repositories** | Git-backed transform code (PySpark, Java) with built-in CI | ⚪ Not relevant — orchestrator itself is git-versioned | — |
 | 1.5 | **Code Workbook** | Jupyter-equivalent exploratory workbook with direct dataset access | ✅ JupyterLite embedded (Phase 24) + 5 API snippets | Fully covered |
 | 1.6 | **Datasets (typed)** | Versioned typed tables | 🟢 lakeFS repos + knowledge bundles as schema-validated JSON | **Erweiterbar** with Apache Iceberg / Delta Lake for tabular datasets |
@@ -32,19 +32,19 @@ positioning, gap analysis, and roadmap discussions.
 | 1.8 | **Health Checks** | Automated data-quality monitors (schema, freshness, volume, custom rules) | 🟢 Drift detection (Phase 23) — 6 flag types, severity ladder | **Ergänzbar** with Great Expectations, Soda Core, Apache Griffin for deeper schema/volume checks |
 | 1.9 | **Data Lineage** | End-to-end dataset → transform → output graph with drilldown | ✅ Marquez/OpenLineage (Phase 16) | Fully covered |
 | 1.10 | **Catalog** | Searchable dataset browser with metadata | ✅ `/catalog` cross-source browser (Phase 20) | **Optional erweiterbar** with DataHub, Amundsen, OpenMetadata for tagging/glossary |
-| 1.11 | **Foundry SQL** | Federated SQL across all datasets | 🟡 Cypher Explorer (Phase 22) for graph; no SQL federation | **Ergänzbar** with Trino (Presto), Apache Drill for SQL federation |
+| 1.11 | **Foundry SQL** | Federated SQL across all datasets | 🟢 Trino SQL federation (D1) — connects Postgres, lakeFS, memory catalogs | `/trino` query interface + Superset SQL Lab for visual exploration |
 | 1.12 | **Object Explorer** | UI drilldown over ontology objects | ✅ `/explorer` with Cypher editor + Neo4j Browser deep-link (Phase 22) | Fully covered for the graph layer |
-| 1.13 | **Workshop (Low-Code Apps)** | Drag-and-drop UI builder for internal applications | 🔴 Not covered | **Ergänzbar** with Appsmith, ToolJet, Budibase, Retool OSS — no direct match in workflow depth |
+| 1.13 | **Workshop (Low-Code Apps)** | Drag-and-drop UI builder for internal applications | 🟢 Budibase (D4, Apache 2.0) — visual form/table/workflow builder | `/workshop` app picker; apps connect to Trino/Postgres directly |
 | 1.14 | **Slate (custom JS UIs)** | JS framework for full custom apps | ⚪ Out of scope — admin UI itself fills this role | — |
-| 1.15 | **Quiver (Pivot/Charts)** | Excel-equivalent pivots + visualisations | 🟡 Grafana for metrics; no pivot builder | **Ergänzbar** with Apache Superset, Metabase, Redash |
-| 1.16 | **Forms** | Schema-driven data-entry forms | 🔴 Not covered | **Ergänzbar** with Form.io, JSONForms, NocoDB |
+| 1.15 | **Quiver (Pivot/Charts)** | Excel-equivalent pivots + visualisations | 🟢 Apache Superset (D3) — SQL pivot, drag-drop charts, dashboard embed | Trino-backed; Superset connects to all federated catalogs |
+| 1.16 | **Forms** | Schema-driven data-entry forms | 🟢 Dynamic Forms (D2) — schema-driven from Kestra flow inputs | Approval writeback integration |
 | 1.17 | **Action Types (Writeback)** | Structured mutations into the ontology with validation | 🟢 `/v1/graph/knowledge/import` with trust-floor + approval gate | Conceptually equivalent |
 | 1.18 | **Webhooks / Functions** | Event handlers for ontology mutations | 🟢 Kafka event bus + LangGraph pipeline nodes | Present but no UI builder for them |
 | 1.19 | **Permissions / Markings / Restrictions** | Fine-grained access control with markings (classification labels) | 🟢 Authentik OIDC + RBAC + `graph_tenant` permission | **Erweiterbar** with OPA (Open Policy Agent), Apache Ranger for markings/ABAC |
 | 1.20 | **Resource Management** | Compute quotas per team/project | 🟢 Token budget per user; no compute quotas | **Ergänzbar** with Kubernetes ResourceQuotas, KubeFlow |
-| 1.21 | **Geospatial / Map App** | Fully integrated map layers for objects | 🔴 Not covered | **Ergänzbar** with PostGIS, KeplerGL, deck.gl, Mapbox-OSS — but ontology integration is missing |
-| 1.22 | **Time Series Catalog** | Specialised model for time series | 🔴 Not covered | **Ergänzbar** with TimescaleDB, InfluxDB, VictoriaMetrics |
-| 1.23 | **Notepad / Reports** | Collaborative documents with live data | 🔴 Not covered | **Ergänzbar** with Outline, HedgeDoc; deep live-data integration is missing |
+| 1.21 | **Geospatial / Map App** | Fully integrated map layers for objects | 🟢 PostGIS + KeplerGL (D4) — GeoJSON layer API, point-in-polygon, bbox filter | `/geo` layer picker + feature table; KeplerGL static bundle for full map |
+| 1.22 | **Time Series Catalog** | Specialised model for time series | 🟢 TimescaleDB (D4) — hypertable catalog, metric query, chart UI | `/timeseries` with window filter (1d/7d/30d/90d) + PostgREST API |
+| 1.23 | **Notepad / Reports** | Collaborative documents with live data | 🟢 HedgeDoc (D4, AGPL) — real-time Markdown collaboration | `/notes` picker + iframe embed; create/list/edit; session auth |
 | 1.24 | **Telemetry / Monitoring** | Platform telemetry | ✅ Prometheus + Grafana + pipeline log + Starfleet | Fully covered |
 
 ---
@@ -55,13 +55,13 @@ positioning, gap analysis, and roadmap discussions.
 |---|---|---|---|---|
 | 2.1 | **Object/Link Explorer** | Investigative drilldown over persons/objects/relations | 🟢 `/explorer` (Cypher) + Neo4j Browser | Present, but no investigative UI workflow |
 | 2.2 | **Graph (Link Analysis)** | Visual link analysis of relationship networks | 🟢 Neo4j Browser (embedded) | **Erweiterbar** with Linkurious OSS, Cytoscape.js, Gephi |
-| 2.3 | **Timeline / Temporal Analysis** | Cross-object event timeline | 🔴 Not covered | **Ergänzbar** with vis-timeline.js, Apache Pinot for event stores |
-| 2.4 | **Geospatial Investigation** | Map with live object overlay | 🔴 Not covered | **Ergänzbar** with OpenStreetMap stack, KeplerGL — investigation tooling is missing |
+| 2.3 | **Timeline / Temporal Analysis** | Cross-object event timeline | 🟢 vis-timeline.js (D2) — unified event stream: Marquez runs + lakeFS commits + drift events | `/timeline` dashboard with 1d/7d/30d/90d window |
+| 2.4 | **Geospatial Investigation** | Map with live object overlay | 🟢 PostGIS + KeplerGL (D4) — layer browser, point-in-polygon, GeoJSON API | Ontology binding (object overlay) partial — geo tables need schema alignment |
 | 2.5 | **Document Intelligence** | OCR + entity extraction from PDFs/scans | 🟢 Existing bundle import pipeline + MCP tools | **Erweiterbar** with Unstructured.io, Apache Tika, ColPali, Tesseract |
 | 2.6 | **Helix (Entity Resolution)** | Duplicate resolution across data sources | ✅ Fuzzy entity deduplication (Ratcliff/Obershelp, Capability #28) | Fully covered |
 | 2.7 | **Dossier (Case File)** | Structured case file with live updates | 🔴 Not covered | **Ergänzbar** with Mattermost, Outline; deep ontology binding is missing |
 | 2.8 | **Mobile / Tactical Edge** | Hardened mobile clients for field deployment | 🔴 Not practical without a dedicated mobile team | Theoretically React Native, but Gotham-grade not realistic |
-| 2.9 | **Federated Search** | Full-text search across all data sources | 🟢 Vector search (ChromaDB) + GraphRAG hybrid | **Erweiterbar** with Elasticsearch/OpenSearch for classic full-text search |
+| 2.9 | **Federated Search** | Full-text search across all data sources | 🟢 OpenSearch unified index (D3) + vector search (ChromaDB) + GraphRAG hybrid | Catalog, lakeFS, Kestra, lineage — all indexed; fuzzy + BM25 ranking |
 
 ---
 
@@ -91,7 +91,7 @@ positioning, gap analysis, and roadmap discussions.
 |---|---|---|---|---|
 | 4.1 | **Multi-Env Continuous Delivery** | Software rollout across cloud/on-prem/air-gap | 🟢 `install.sh` + Docker Compose + LXC/Kubernetes charts | **Erweiterbar** with ArgoCD, Flux, Tekton |
 | 4.2 | **Constraint Solver** | Automatic computation of which release goes to which environment | 🔴 Not covered | **Theoretisch erweiterbar** with OPA constraint templates; Apollo grade not realistic |
-| 4.3 | **Compliance Posture** | Real-time compliance monitoring per environment | 🔴 Not covered | **Erweiterbar** with OpenSCAP, Inspec, Falco |
+| 4.3 | **Compliance Posture** | Real-time compliance monitoring per environment | 🟢 Falco runtime threat detection + OpenSCAP CIS benchmark scanning (D3) | `/compliance` dashboard; scan results + Falco alert stream |
 | 4.4 | **Air-Gap Releases** | Sealed bundles for isolated environments | 🟢 Federation bundle format + air-gap mode | Conceptually equivalent |
 
 ---

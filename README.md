@@ -24,6 +24,19 @@
 | **Lineage (Marquez)** | `/lineage` | Foundry Lineage |
 | **Versioning (lakeFS)** | `/versioning` | Foundry Branching |
 | **ETL Fan-Out (NiFi)** | `/etl` | Foundry Pipeline Builder |
+| **Timeline** | `/timeline` | Gotham Temporal Analysis |
+| **Link Analysis (Cytoscape)** | `/link-analysis` | Gotham Object Network |
+| **Pipeline Builder (Kestra)** | `/kestra` | Foundry Pipeline Builder (visual) |
+| **Dynamic Forms** | `/forms` | Foundry Forms |
+| **Federated Search (OpenSearch)** | `/search` | Foundry Search |
+| **Charts & Pivot** | `/charts` | Foundry Quiver (partial) |
+| **Analytics / BI (Superset)** | `/superset` | Foundry Quiver / Palantir Workspace |
+| **Compliance Posture (Falco + SCAP)** | `/compliance` | Apollo Compliance Posture |
+| **OPA Access Control** | `/opa` | Foundry RBAC / Markings |
+| **ML Experiment Tracking (MLflow)** | `/eval` | Foundry Model Workbench |
+| **Prompt Safety (NeMo Guardrails)** | `/guardrails` | Palantir AIP Safety |
+| **SQL Federation (Trino)** | `/trino` | Foundry SQL |
+| **Document Intelligence (DocLing)** | `/documents` | Foundry Document Intelligence |
 
 Full feature-by-feature mapping: [`docs/system/palantir_comparison.md`](docs/system/palantir_comparison.md) (50 modules across Foundry/Gotham/AIP/Apollo, 12 industry use-cases).
 
@@ -55,12 +68,18 @@ Operators with an existing `moe-sovereign` installation that uses Phase 16-24 (f
 ```
 moe-sovereign  <- HTTP/REST ->  moe-codex  <-- Marquez (Lineage)
    (core)                       (codex)    <-- lakeFS (Versioning)
-                                           <-- NiFi (ETL)
+                                           <-- NiFi / Kestra (ETL / Pipelines)
+                                           <-- Superset (BI / Quiver)
+                                           <-- OpenSearch (Federated Search)
+                                           <-- Falco + OpenSCAP (Compliance)
+                                           <-- Trino (SQL Federation)
+                                           <-- OPA (Access Control)
+                                           <-- MLflow (Experiment Tracking)
                                            <-- Postgres (shared terra_checkpoints)
                                            <-- Valkey (shared terra_cache)
 ```
 
-**`moe-sovereign` runs autonomously without `moe-codex`.** Deploying codex adds the eight modules above. Communication uses clearly defined HTTP APIs (OpenAPI schemas in [`docs/api/`](docs/api/)).
+**`moe-sovereign` runs autonomously without `moe-codex`.** Deploying codex adds all data-platform modules. Communication uses clearly defined HTTP APIs (OpenAPI schemas in [`docs/api/`](docs/api/)).
 
 ---
 
@@ -77,7 +96,7 @@ Hosting recommendation: Hetzner / IONOS / STACKIT / OVH / Scaleway — all under
 
 ---
 
-## Status (2026-05-11)
+## Status (2026-05-17)
 
 | Phase | Component | Status |
 |---|---|---|
@@ -90,8 +109,12 @@ Hosting recommendation: Hetzner / IONOS / STACKIT / OVH / Scaleway — all under
 | 22 | Read-only Cypher Explorer | ✅ |
 | 23 | Data Health drift detection | ✅ |
 | 24 | JupyterLite Notebook | ✅ |
+| D1 | OPA, MLflow, NeMo Guardrails, Trino, DocLing | ✅ |
+| D2 | Timeline, Link Analysis, Kestra, Forms, Search, Charts | ✅ |
+| D3 | Superset (BI), OpenSearch (Search), Falco + OpenSCAP (Compliance) | ✅ |
+| D4 | Budibase (Workshop), TimescaleDB (Time Series), HedgeDoc (Notes), PostGIS+KeplerGL (Geo) | ✅ |
 
-Planned extensions: OPA permissions, Trino SQL federation, DocLing document intelligence, Kestra pipeline builder, OpenSearch federated search, Cytoscape.js link analysis, vis-timeline, ArgoCD/Falco/OpenSCAP. Order driven by concrete use-case demand.
+Planned extensions: ArgoCD deployment automation, KeplerGL static bundle, ontology-geo binding. Order driven by concrete use-case demand.
 
 ---
 

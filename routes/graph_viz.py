@@ -1,5 +1,8 @@
 """routes/graph_viz.py — Knowledge-graph network data for Cytoscape.js (Phase D.2.4).
 
+Serves the API endpoints for the Link Analysis page (admin_ui/templates/link_analysis.html).
+The HTML page is routed at /link-analysis in moe-infra; these JSON endpoints power it.
+
 Queries moe-sovereign's read-only Cypher endpoint and converts the result to
 the Cytoscape.js element format: {nodes: [...], edges: [...]}.
 

@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+{% block title %}Geospatial Investigation — MoE Codex{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-3">
+  <h5 class="mb-0 fw-bold">
+    <i class="bi bi-map me-2 text-success"></i>Geospatial Investigation
+    <span class="badge bg-secondary ms-2 fs-6" id="geo-status">–</span>
+  </h5>
+  <div class="d-flex gap-2">
+    <button class="btn btn-sm btn-outline-primary" onclick="loadLayers()">
+      <i class="bi bi-arrow-clockwise me-1"></i>Refresh
+    </button>
+  </div>
+</div>
+
+<div class="row g-3">
+  {# ── Layer picker ─────────────────────────────────────────────────── #}
+  <div class="col-12 col-lg-3">
+    <div class="card h-100">
+      <div class="card-header py-2 fw-semibold small">
+        <i class="bi bi-layers me-1"></i>Layers
+      </div>
+      <div class="card-body p-0" style="max-height:200px;overflow-y:auto">
+        <ul class="list-group list-group-flush" id="layer-list">
+          <li class="list-group-item text-muted text-center small py-3">Loading…</li>
+        </ul>
+      </div>
+      <div class="card-header py-2 fw-semibold small border-top mt-1">
+        <i class="bi bi-search me-1"></i>Point-in-Polygon
+      </div>
+      <div class="card-body">
+        <div class="mb-2">
+          <label class="form-label small mb-1">Layer</label>
+          <input id="pip-table" class="form-control form-control-sm" placeholder="table_name">
+        </div>
+        <div class="row g-1 mb-2">
+          <div class="col-6">
+            <label class="form-label small mb-1">Longitude</label>
+            <input id="pip-lon" type="number" step="any" class="form-control form-control-sm" placeholder="13.4">
+          </div>
+          <div class="col-6">
+            <label class="form-label small mb-1">Latitude</label>
+            <input id="pip-lat" type="number" step="any" class="form-control form-control-sm" placeholder="52.5">
+          </div>
+        </div>
+        <button class="btn btn-sm btn-outline-success w-100" onclick="runPip()">Find Region</button>
+        <div id="pip-result" class="mt-2 small text-muted"></div>
+      </div>
+    </div>
+  </div>
+
+  {# ── Map (KeplerGL iframe) ────────────────────────────────────────── #}
+  <div class="col-12 col-lg-9">
+    <div class="card h-100">
+      <div class="card-header py-2 fw-semibold small d-flex justify-content-between align-items-center">
+        <span id="map-title"><i class="bi bi-map me-1"></i>Map</span>
+        <div id="layer-actions" class="d-flex gap-2" style="display:none!important">
+          <button class="btn btn-sm btn-outline-success" id="load-layer-btn" onclick="loadSelectedLayer()">
+            <i class="bi bi-cloud-download me-1"></i>Load Layer
+          </button>
+        </div>
+      </div>
+      <div id="map-area" class="card-body p-1 d-flex align-items-center justify-content-center"
+           style="min-height:500px;background:#1a1a2e;border-radius:0 0 10px 10px">
+        <div class="text-muted text-center small">
+          <i class="bi bi-map fs-2 d-block mb-2 opacity-25" style="color:#6ea8fe"></i>
+          Select a layer to render it on the map.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let selectedLayer = null;
+
+async function checkStatus() {
+  const r = await fetch('/api/codex/geo/status').catch(() => null);
+  if (!r) return;
+  const d = await r.json();
+  const el = document.getElementById('geo-status');
+  el.textContent = d.reachable ? 'online' : 'offline';
+  el.className = `badge ${d.reachable ? 'bg-success' : 'bg-danger'} ms-2 fs-6`;
+}
+
+async function loadLayers() {
+  const r  = await fetch('/api/codex/geo/layers').catch(() => null);
+  if (!r) return;
+  const d  = await r.json();
+  const ul = document.getElementById('layer-list');
+  const layers = d.layers || [];
+  if (!layers.length) {
+    ul.innerHTML = `<li class="list-group-item text-muted text-center small py-3">
+      No geometry tables found.<br>
+      <span class="opacity-50">Upload GeoJSON to PostGIS to create layers.</span></li>`;
+    return;
+  }
+  ul.innerHTML = layers.map(l => {
+    const name = l.table||l.hypertable_name||String(l);
+    return `<li class="list-group-item list-group-item-action small" style="cursor:pointer"
+        onclick="selectLayer('${escHtml(name)}')">
+      <i class="bi bi-layers me-1 text-success"></i>${escHtml(name)}
+    </li>`;
+  }).join('');
+}
+
+function selectLayer(name) {
+  selectedLayer = name;
+  document.getElementById('pip-table').value = name;
+  document.getElementById('map-title').innerHTML =
+    `<i class="bi bi-map me-1"></i>${escHtml(name)}`;
+  document.getElementById('layer-actions').style.display = '';
+  loadSelectedLayer();
+}
+
+async function loadSelectedLayer() {
+  if (!selectedLayer) return;
+  const area = document.getElementById('map-area');
+  area.innerHTML = `<div class="text-muted small"><i class="bi bi-hourglass me-1"></i>Fetching GeoJSON…</div>`;
+
+  const geoUrl = `/api/codex/geo/layers/${encodeURIComponent(selectedLayer)}/geojson?limit=2000`;
+  const r      = await fetch(geoUrl).catch(() => null);
+  if (!r || !r.ok) {
+    area.innerHTML = `<div class="alert alert-warning m-3">Failed to load layer GeoJSON.</div>`;
+    return;
+  }
+  const fc = await r.json();
+  if (!fc.features || !fc.features.length) {
+    area.innerHTML = `<div class="text-muted small p-3">Layer is empty — no features to display.</div>`;
+    return;
+  }
+
+  // Render in KeplerGL via the self-hosted static page
+  // We pass the GeoJSON as a base64-encoded data URI to keep it same-origin.
+  const keplerUrl = `/static/kepler.html#data=${encodeURIComponent(JSON.stringify(fc)).slice(0,8000)}`;
+  area.innerHTML = `
+    <div class="p-3 w-100">
+      <div class="alert alert-success small mb-2">
+        <i class="bi bi-check-circle me-1"></i>
+        Loaded <strong>${fc.count}</strong> features from <strong>${escHtml(selectedLayer)}</strong>.
+        <a href="${geoUrl}" target="_blank" class="ms-2 btn btn-sm btn-outline-success py-0">
+          <i class="bi bi-download me-1"></i>GeoJSON
+        </a>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-sm table-dark small mb-0">
+          <thead><tr id="prop-head"></tr></thead>
+          <tbody id="prop-body"></tbody>
+        </table>
+      </div>
+      <div class="text-muted small mt-2 opacity-50">
+        <i class="bi bi-info-circle me-1"></i>
+        Full interactive map available when KeplerGL static bundle is deployed
+        (<code>/static/kepler.html</code>).
+      </div>
+    </div>`;
+
+  // Render first 20 features as a property table
+  const keys = Object.keys(fc.features[0]?.properties || {}).slice(0, 8);
+  document.getElementById('prop-head').innerHTML = keys.map(k => `<th>${escHtml(k)}</th>`).join('');
+  document.getElementById('prop-body').innerHTML = fc.features.slice(0, 20).map(f =>
+    `<tr>${keys.map(k => `<td>${escHtml(String(f.properties[k]??''))}</td>`).join('')}</tr>`
+  ).join('');
+}
+
+async function runPip() {
+  const table = document.getElementById('pip-table').value.trim();
+  const lon   = parseFloat(document.getElementById('pip-lon').value);
+  const lat   = parseFloat(document.getElementById('pip-lat').value);
+  const out   = document.getElementById('pip-result');
+  if (!table || isNaN(lon) || isNaN(lat)) {
+    out.textContent = 'Enter table, longitude and latitude.'; return;
+  }
+  out.textContent = 'Searching…';
+  const r = await fetch(`/api/codex/geo/pip?table=${encodeURIComponent(table)}&lon=${lon}&lat=${lat}`);
+  const d = await r.json();
+  if (!d.matches || !d.matches.length) {
+    out.textContent = 'No matching region found.'; return;
+  }
+  out.innerHTML = d.matches.map(m =>
+    `<div class="badge bg-success me-1">${escHtml(m.name||JSON.stringify(m))}</div>`
+  ).join('');
+}
+
+function escHtml(s) {
+  return String(s||'').replace(/[&<>"']/g, c =>
+    ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+document.addEventListener('DOMContentLoaded', () => { checkStatus(); loadLayers(); });
+</script>
+{% endblock %}
