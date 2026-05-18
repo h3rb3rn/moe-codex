@@ -586,20 +586,21 @@ services:
   moe-superset:
     image: apache/superset:4.1.1
     container_name: moe-superset
-    command: >
-      /bin/sh -c "
-        superset db upgrade &&
-        superset fab create-admin
-          --username $${SUPERSET_ADMIN_USER:-admin}
-          --firstname Sovereign
-          --lastname Admin
-          --email $${SUPERSET_ADMIN_EMAIL:-admin@codex.local}
-          --password $${SUPERSET_ADMIN_PASS:-SovereignBI!} 2>/dev/null || true &&
-        superset init &&
-        gunicorn --bind 0.0.0.0:8088
-          --workers 2 --timeout 120
+    command:
+      - /bin/sh
+      - -c
+      - |
+        set -e
+        superset db upgrade
+        superset fab create-admin \
+          --username "${SUPERSET_ADMIN_USER:-admin}" \
+          --firstname Sovereign \
+          --lastname Admin \
+          --email "${SUPERSET_ADMIN_EMAIL:-admin@codex.local}" \
+          --password "${SUPERSET_ADMIN_PASS:-SovereignBI!}" 2>/dev/null || true
+        superset init
+        exec gunicorn --bind 0.0.0.0:8088 --workers 2 --timeout 120 \
           'superset.app:create_app()'
-      "
     environment:
       SUPERSET_SECRET_KEY:    "${SUPERSET_SECRET_KEY:-change-me-superset-secret-key}"
       SQLALCHEMY_DATABASE_URI: "postgresql+psycopg2://superset:superset@moe-superset-db:5432/superset"
@@ -609,7 +610,7 @@ services:
       WTF_CSRF_ENABLED:        "false"
       TALISMAN_ENABLED:        "false"
     ports:
-      - "${SUPERSET_HOST_PORT:-8088}:8088"
+      - "${SUPERSET_HOST_PORT:-8889}:8088"
     depends_on:
       moe-superset-db:
         condition: service_healthy
