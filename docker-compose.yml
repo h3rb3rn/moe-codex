@@ -101,7 +101,7 @@ services:
 
   # ── OPA — Open Policy Agent (access control) ────────────────────────────────
   moe-opa:
-    image: openpolicyagent/opa:latest-debug
+    image: openpolicyagent/opa:0.70.0-debug
     container_name: moe-opa
     restart: unless-stopped
     command:
@@ -188,7 +188,7 @@ services:
 
   # ── Marquez API ─────────────────────────────────────────────────────────────
   moe-marquez:
-    image: marquezproject/marquez:latest
+    image: marquezproject/marquez:0.50.0
     container_name: moe-marquez
     restart: unless-stopped
     environment:
@@ -219,7 +219,7 @@ services:
 
   # ── Marquez Web UI ──────────────────────────────────────────────────────────
   marquez-web:
-    image: marquezproject/marquez-web:latest
+    image: marquezproject/marquez-web:0.50.0
     container_name: marquez-web
     restart: unless-stopped
     environment:
@@ -310,7 +310,7 @@ services:
   # Uses moe-storage (MinIO from moe-sovereign stack) as S3-compatible backend.
   # Note: lakeFS image has no curl — healthcheck uses wget. See enterprise_stack_quirks.
   moe-lakefs:
-    image: treeverse/lakefs:latest
+    image: treeverse/lakefs:1.35.0
     container_name: moe-lakefs
     restart: unless-stopped
     command: ["run", "--local-settings"]
@@ -348,7 +348,7 @@ services:
 
   # ── Kestra pipeline builder ───────────────────────────────────────────────
   moe-kestra:
-    image: kestra/kestra:latest
+    image: kestra/kestra:0.19.3
     container_name: moe-kestra
     command: server standalone
     environment:
@@ -407,7 +407,7 @@ services:
 
   # ── Budibase — Low-Code Workshop parity ─────────────────────────────────
   moe-budibase:
-    image: budibase/budibase:latest
+    image: budibase/budibase:3.4.20
     container_name: moe-budibase
     environment:
       BB_ADMIN_USER_EMAIL:    "${BUDIBASE_ADMIN_EMAIL:-admin@codex.local}"
@@ -444,7 +444,7 @@ services:
 
   # ── TimescaleDB — Time Series Catalog ────────────────────────────────────
   moe-timescaledb:
-    image: timescale/timescaledb:latest-pg16
+    image: timescale/timescaledb:2.16.1-pg16
     container_name: moe-timescaledb
     environment:
       POSTGRES_DB:       timeseries
@@ -490,7 +490,7 @@ services:
 
   # ── HedgeDoc — Collaborative Notes / Reports ─────────────────────────────
   moe-hedgedoc:
-    image: hedgedoc/hedgedoc:latest
+    image: hedgedoc/hedgedoc:1.10.0
     container_name: moe-hedgedoc
     environment:
       CMD_DB_URL:             "postgres://hedgedoc:${HEDGEDOC_DB_PASSWORD:-hedgedoc-changeme}@moe-hedgedoc-db:5432/hedgedoc"
@@ -584,7 +584,7 @@ services:
 
   # ── Apache Superset — BI / Quiver parity ────────────────────────────────
   moe-superset:
-    image: apache/superset:latest
+    image: apache/superset:4.1.1
     container_name: moe-superset
     command: >
       /bin/sh -c "
@@ -694,7 +694,7 @@ services:
 
   # ── Falco — runtime security / threat detection ──────────────────────────
   moe-falco:
-    image: falcosecurity/falco-no-driver:latest
+    image: falcosecurity/falco-no-driver:0.39.2
     container_name: moe-falco
     privileged: true
     pid: host

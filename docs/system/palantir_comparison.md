@@ -26,7 +26,7 @@ positioning, gap analysis, and roadmap discussions.
 | 1.2 | **Data Connection** | ~200 prebuilt connectors (SAP, Oracle, Salesforce, REST, file, JDBC) | 🟢 NiFi `ListenHTTP` + knowledge bundle import (Phase 17) | **Erweiterbar** with Apache NiFi (300+ processors), Airbyte (350+ connectors), Meltano |
 | 1.3 | **Pipeline Builder (visual ETL)** | Drag-and-drop ETL DSL with Spark backend | 🟢 NiFi drag-drop UI (D1) + Kestra YAML pipeline builder (D2) | NiFi: visual canvas; Kestra: code-based with namespace/trigger; both wired to `/etl` + `/kestra` |
 | 1.4 | **Code Repositories** | Git-backed transform code (PySpark, Java) with built-in CI | ⚪ Not relevant — orchestrator itself is git-versioned | — |
-| 1.5 | **Code Workbook** | Jupyter-equivalent exploratory workbook with direct dataset access | ✅ JupyterLite embedded (Phase 24) + 5 API snippets | Fully covered |
+| 1.5 | **Code Workbook** | Jupyter-equivalent exploratory workbook with direct dataset access | ✅ JupyterLab server-side (D2) — full Python kernel, scipy/pandas/numpy, 5 API snippets | Token auth removed; proxied at /notebook via moe-admin session |
 | 1.6 | **Datasets (typed)** | Versioned typed tables | 🟢 lakeFS repos + knowledge bundles as schema-validated JSON | **Erweiterbar** with Apache Iceberg / Delta Lake for tabular datasets |
 | 1.7 | **Branching & Versioning** | Proposal branches with merge approval | ✅ lakeFS `pending/<tag>-<ts>` + approval UI (Phase 18+21) | Fully covered |
 | 1.8 | **Health Checks** | Automated data-quality monitors (schema, freshness, volume, custom rules) | 🟢 Drift detection (Phase 23) — 6 flag types, severity ladder | **Ergänzbar** with Great Expectations, Soda Core, Apache Griffin for deeper schema/volume checks |
@@ -59,7 +59,7 @@ positioning, gap analysis, and roadmap discussions.
 | 2.4 | **Geospatial Investigation** | Map with live object overlay | 🟢 PostGIS + KeplerGL (D4) — layer browser, point-in-polygon, GeoJSON API | Ontology binding (object overlay) partial — geo tables need schema alignment |
 | 2.5 | **Document Intelligence** | OCR + entity extraction from PDFs/scans | 🟢 Existing bundle import pipeline + MCP tools | **Erweiterbar** with Unstructured.io, Apache Tika, ColPali, Tesseract |
 | 2.6 | **Helix (Entity Resolution)** | Duplicate resolution across data sources | ✅ Fuzzy entity deduplication (Ratcliff/Obershelp, Capability #28) | Fully covered |
-| 2.7 | **Dossier (Case File)** | Structured case file with live updates | 🔴 Not covered | **Ergänzbar** with Mattermost, Outline; deep ontology binding is missing |
+| 2.7 | **Dossier (Case File)** | Structured case file with live updates | 🟢 Dossier (D5) — investigation container with pinned evidence from all modules | `/dossier` — pin graph entities, timeline events, geo features, notes, alerts; Redis-backed |
 | 2.8 | **Mobile / Tactical Edge** | Hardened mobile clients for field deployment | 🔴 Not practical without a dedicated mobile team | Theoretically React Native, but Gotham-grade not realistic |
 | 2.9 | **Federated Search** | Full-text search across all data sources | 🟢 OpenSearch unified index (D3) + vector search (ChromaDB) + GraphRAG hybrid | Catalog, lakeFS, Kestra, lineage — all indexed; fuzzy + BM25 ranking |
 
@@ -76,9 +76,9 @@ positioning, gap analysis, and roadmap discussions.
 | 3.5 | **AIP Threads (Multi-Turn)** | Persistent conversations with context | ✅ ChromaDB Tier-2 memory (1M-token context) | **Übertrifft** — Tier-2 vector memory |
 | 3.6 | **AIP Studio (Agent Builder)** | Low-code agent builder | 🟢 Templates + CC profiles via admin UI | Conceptually equivalent |
 | 3.7 | **AIP Evaluations** | Structured evaluation framework | 🟢 GAIA + LongMemEval benchmarks under `/benchmarks` | **Erweiterbar** with Promptfoo, Ragas, DeepEval |
-| 3.8 | **AIP Guardrails** | Policy layer (topic, PII, safety) | 🟢 Quarantine + self-correction journal | **Erweiterbar** with NeMo Guardrails, Llama-Guard |
+| 3.8 | **AIP Guardrails** | Policy layer (topic, PII, safety) | ✅ NeMo Guardrails (D1) — pattern-based config, reload endpoint + Quarantine + self-correction journal | `/guardrails/check` + `/guardrails/reload`; config at `guardrails/config.yml` |
 | 3.9 | **AIP Functions** | Python/TS functions callable from the LLM | ✅ MCP tools are exactly that | Fully covered |
-| 3.10 | **AIP Hub (Model Registry)** | Model metadata catalog | 🟢 Inference-server configuration in admin UI | **Erweiterbar** with MLflow, Hugging Face Hub (self-hosted) |
+| 3.10 | **AIP Hub (Model Registry)** | Model metadata catalog | 🟢 MLflow experiment tracking + model registry (D1) + inference-server config in admin UI | MLflow at `/eval`; model staging via `mlflow.register_model()`; inference config in admin UI |
 | 3.11 | **AIP Logic-LLM Decision Trees** | Audited decision pipelines | 🟢 LangGraph state + pipeline log | Conceptually equivalent |
 | 3.12 | **Federated Knowledge Sync** | (not present in AIP) | ✅ MoE Libris (differentiator!) | **Übertrifft Palantir** |
 | 3.13 | **Confidence Decay / Trust Score** | Limited — manually configured | ✅ Trust score with decay (Capability #25–28) | **Übertrifft Palantir** |
@@ -117,19 +117,22 @@ positioning, gap analysis, and roadmap discussions.
 
 ## 6. Structural Coverage Balance
 
-| Area | Palantir modules | MoE-covered | OS-erweiterbar | Not coverable |
-|---|---|---|---|---|
-| **Foundry** | 24 | 13 | 8 | 3 (Workshop depth, tactical geo, Apollo constraint solver) |
-| **Gotham** | 9 | 3 | 5 | 1 (Mobile / tactical edge) |
-| **AIP** | 13 | 12 | 1 | 0 — **MoE übertrifft AIP** in 3 dimensions (Federation, trust decay, 7B ensemble) |
-| **Apollo** | 4 | 1 | 2 | 1 (Constraint solver) |
-| **Σ** | **50** | **29 (58 %)** | **16 (32 %)** | **5 (10 %)** |
+| Area | Palantir modules | ✅ Fully covered | 🟢 Partially covered | 🔴 Not coverable | ⚪ OOS |
+|---|---|---|---|---|---|
+| **Foundry** | 24 | 6 | 16 | 0 | 2 |
+| **Gotham** | 9 | 1 | 7 | 1 (Mobile/tactical) | 0 |
+| **AIP** | 13 | 8 | 5 | 0 | 0 |
+| **Apollo** | 4 | 0 | 3 | 1 (Constraint solver) | 0 |
+| **Σ** | **50** | **15 (30 %)** | **31 (62 %)** | **2 (4 %)** | **2 (4 %)** |
+
+**92 % of modules are either fully or partially covered.** Only 2 modules (Mobile/Tactical Edge, Apollo Constraint Solver) are structurally not achievable without vendor hardware or proprietary complexity.
 
 ### Summary
 
-- **MoE Sovereign already covers ~58 %** of the full Palantir feature space — strongest in **AIP (the AI layer) + Foundry catalog/lineage/versioning**.
-- **A further ~32 %** is reachable with defined open-source tools — primarily Pipeline Builder, Forms, geospatial, SQL federation, permission markings, classic full-text search.
-- **~10 % is structurally not practical** — tactical-edge hardware, Apollo constraint solver, Slate depth, Workshop depth (no comparable integrated workflow engine in the OS ecosystem).
+- **MoE Sovereign fully covers 30 %** of the Palantir feature space — strongest in **AIP (8/13 ✅)**.
+- **A further 62 % is partially covered** — functional equivalents exist and are deployed; integration depth varies.
+- **Only 4 % is structurally not practical** — tactical-edge mobile hardware and Apollo-grade constraint solving.
+- **2 modules are out of scope by design** — Slate (custom JS framework) and Code Repositories (orchestrator is git-versioned itself).
 
 ### Three areas where MoE Sovereign already exceeds Palantir
 

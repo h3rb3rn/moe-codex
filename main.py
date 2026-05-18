@@ -13,6 +13,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 
 import state
 from services.sovereign_client import health_check as sovereign_health
@@ -188,6 +189,7 @@ from routes.trino      import router as trino_router
 from routes.documents  import router as documents_router
 from routes.superset   import router as superset_router
 from routes.compliance import router as compliance_router
+from routes.dossier    import router as dossier_router
 from routes.workshop   import router as workshop_router
 from routes.timeseries import router as timeseries_router
 from routes.notes      import router as notes_router
@@ -212,10 +214,17 @@ app.include_router(trino_router)
 app.include_router(documents_router)
 app.include_router(superset_router,   prefix="/v1/codex")
 app.include_router(compliance_router, prefix="/v1/codex")
+app.include_router(dossier_router,    prefix="/v1/codex")
 app.include_router(workshop_router,   prefix="/v1/codex")
 app.include_router(timeseries_router, prefix="/v1/codex")
 app.include_router(notes_router,      prefix="/v1/codex")
 app.include_router(geo_router,        prefix="/v1/codex")
+
+
+import pathlib as _pl
+_static_dir = _pl.Path(__file__).parent / "admin_ui" / "static"
+if _static_dir.exists():
+    app.mount("/static", StaticFiles(directory=str(_static_dir)), name="static")
 
 
 @app.exception_handler(Exception)
