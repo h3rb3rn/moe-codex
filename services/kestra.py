@@ -18,10 +18,12 @@ _HEADERS = {"Content-Type": "application/json"}
 
 
 async def health_check() -> bool:
+    """Probe Kestra reachability via the management endpoint (no auth required)."""
     try:
-        async with httpx.AsyncClient(timeout=5) as c:
+        async with httpx.AsyncClient(timeout=5, follow_redirects=True) as c:
             r = await c.get(f"{KESTRA_URL}/api/v1/flows/search", params={"size": 1})
-            return r.status_code == 200
+            # 200 = healthy + auth disabled, 401 = healthy + auth enabled
+            return r.status_code in (200, 401)
     except Exception:
         return False
 

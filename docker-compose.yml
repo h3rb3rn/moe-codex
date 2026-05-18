@@ -348,7 +348,7 @@ services:
 
   # ── Kestra pipeline builder ───────────────────────────────────────────────
   moe-kestra:
-    image: kestra/kestra:0.19.3
+    image: kestra/kestra:latest
     container_name: moe-kestra
     command: server standalone
     environment:
@@ -416,8 +416,9 @@ services:
       ENCRYPTION_KEY:         "${BUDIBASE_ENCRYPTION_KEY:-change-me-encrypt}"
       SELF_HOSTED:            "1"
       REDIS_URL:              "redis://moe-budibase-redis:6379"
+      REDIS_PASSWORD:         ""
     ports:
-      - "${BUDIBASE_HOST_PORT:-10000}:10000"
+      - "${BUDIBASE_HOST_PORT:-10000}:80"
     depends_on:
       - moe-budibase-redis
     volumes:
@@ -475,7 +476,7 @@ services:
       PGRST_DB_ANON_ROLE:     "codex"
       PGRST_OPENAPI_SERVER_PROXY_URI: "http://moe-timescale-rest:3000"
     ports:
-      - "${TIMESCALE_REST_PORT:-3001}:3000"
+      - "${TIMESCALE_REST_PORT:-3004}:3000"
     depends_on:
       moe-timescaledb:
         condition: service_healthy
@@ -490,7 +491,7 @@ services:
 
   # ── HedgeDoc — Collaborative Notes / Reports ─────────────────────────────
   moe-hedgedoc:
-    image: hedgedoc/hedgedoc:1.10.0
+    image: quay.io/hedgedoc/hedgedoc:latest
     container_name: moe-hedgedoc
     environment:
       CMD_DB_URL:             "postgres://hedgedoc:${HEDGEDOC_DB_PASSWORD:-hedgedoc-changeme}@moe-hedgedoc-db:5432/hedgedoc"

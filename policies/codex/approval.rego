@@ -1,5 +1,7 @@
 package codex.approval
 
+import rego.v1
+
 # Approval workflow policy.
 # input.user:   { id, groups: [...], clearance }
 # input.action: "submit" | "approve" | "reject" | "view"

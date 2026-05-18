@@ -1,5 +1,7 @@
 package codex.data_markings
 
+import rego.v1
+
 # Data classification hierarchy (ascending sensitivity).
 # A user's clearance must be >= the dataset's classification level.
 classification_level := {

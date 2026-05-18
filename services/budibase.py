@@ -21,7 +21,7 @@ import httpx
 
 logger = logging.getLogger(__name__)
 
-BUDIBASE_URL     = os.getenv("BUDIBASE_URL",  "http://moe-budibase:10000")
+BUDIBASE_URL     = os.getenv("BUDIBASE_URL",  "http://moe-budibase:80")
 BUDIBASE_API_KEY = os.getenv("BUDIBASE_API_KEY", "")
 BUDIBASE_TIMEOUT = float(os.getenv("BUDIBASE_TIMEOUT", "15"))
 
@@ -34,9 +34,10 @@ def _headers() -> dict[str, str]:
 
 
 async def health_check() -> bool:
+    """Probe Budibase reachability. The root URL redirects to /builder (200)."""
     try:
-        async with httpx.AsyncClient(timeout=5) as c:
-            r = await c.get(f"{BUDIBASE_URL}/health")
+        async with httpx.AsyncClient(timeout=5, follow_redirects=True) as c:
+            r = await c.get(f"{BUDIBASE_URL}/")
             return r.status_code == 200
     except Exception:
         return False

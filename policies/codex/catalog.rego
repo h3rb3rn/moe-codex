@@ -1,5 +1,6 @@
 package codex.catalog
 
+import rego.v1
 import data.codex.data_markings
 
 # Catalog access policy.

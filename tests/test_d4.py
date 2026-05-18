@@ -46,14 +46,14 @@ from services.geospatial import (
 @pytest.mark.anyio
 @respx.mock
 async def test_budibase_health_ok():
-    respx.get(f"{BUDIBASE_URL}/health").mock(return_value=httpx.Response(200))
+    respx.get(f"{BUDIBASE_URL}/").mock(return_value=httpx.Response(200))
     assert await bb_health() is True
 
 
 @pytest.mark.anyio
 @respx.mock
 async def test_budibase_health_down():
-    respx.get(f"{BUDIBASE_URL}/health").mock(
+    respx.get(f"{BUDIBASE_URL}/").mock(
         side_effect=httpx.ConnectError("refused")
     )
     assert await bb_health() is False
@@ -86,7 +86,7 @@ async def test_app_embed_url():
 @pytest.mark.anyio
 @respx.mock
 async def test_timeseries_health_ok():
-    respx.get(f"{TIMESERIES_PGREST_URL}/health").mock(
+    respx.get(f"{TIMESERIES_PGREST_URL}/").mock(
         return_value=httpx.Response(200)
     )
     assert await ts_health() is True
@@ -95,7 +95,7 @@ async def test_timeseries_health_ok():
 @pytest.mark.anyio
 @respx.mock
 async def test_timeseries_health_down():
-    respx.get(f"{TIMESERIES_PGREST_URL}/health").mock(
+    respx.get(f"{TIMESERIES_PGREST_URL}/").mock(
         side_effect=httpx.ConnectError("refused")
     )
     assert await ts_health() is False

@@ -33,7 +33,7 @@ async def health_check() -> bool:
     """Check TimescaleDB reachability via PostgREST /health."""
     try:
         async with httpx.AsyncClient(timeout=5) as c:
-            r = await c.get(f"{TIMESERIES_PGREST_URL}/health")
+            r = await c.get(f"{TIMESERIES_PGREST_URL}/")
             return r.status_code == 200
     except Exception:
         return False
