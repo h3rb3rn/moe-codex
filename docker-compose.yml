@@ -27,6 +27,7 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - trivy_results:/var/lib/codex/trivy
+      - /var/log/falco:/var/log/falco:ro
     depends_on:
       moe-opa:
         condition: service_healthy
@@ -698,36 +699,12 @@ services:
           memory: 512M
 
   # ── Falco — runtime security / threat detection ──────────────────────────
-  moe-falco:
-    image: falcosecurity/falco-no-driver:0.39.2
-    container_name: moe-falco
-    privileged: true
-    pid: host
-    volumes:
-      - /var/run/docker.sock:/host/var/run/docker.sock:ro
-      - /proc:/host/proc:ro
-      - /dev:/host/dev:ro
-      - /sys/kernel/debug:/sys/kernel/debug:ro
-      - falco_rules:/etc/falco/rules.d
-      - falco_events:/var/log/falco
-    environment:
-      FALCO_BPF_PROBE:     ""
-    command: >
-      falco
-        --modern-bpf
-        -o "json_output=true"
-        -o "file_output.enabled=true"
-        -o "file_output.filename=/var/log/falco/events.json"
-        -o "http_output.enabled=false"
-        --disable-cri-socket
-    networks:
-      - moe_net
-    restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          cpus: "0.5"
-          memory: 256M
+  # NOTE: Falco runs as a systemd service (falco-modern-bpf.service) on the host,
+  # not as a Docker container. Modern eBPF probes require privileges that Docker
+  # seccomp filtering blocks even with --privileged. The systemd service writes
+  # JSON events to /var/log/falco/events.json which is bind-mounted read-only
+  # into the codex-api container above.
+  # To manage: sudo systemctl {start,stop,restart,status} falco-modern-bpf.service
 
 # =============================================================================
 volumes:
@@ -747,8 +724,6 @@ volumes:
   postgis_data:
   superset_db_data:
   opensearch_data:
-  falco_rules:
-  falco_events:
   trivy_results:
 
 networks:
