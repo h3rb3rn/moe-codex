@@ -50,16 +50,26 @@ cd moe-codex
 cp .env.example .env
 # Edit: CODEX_NODE_ID, CODEX_ADMIN_KEY, SOVEREIGN_URL (for GraphRAG attachment)
 
-docker compose up -d
-
-# Codex API:   http://localhost:8090
-# Codex Docs:  http://localhost:8090/docs   (interactive OpenAPI)
-# Marquez UI:  http://localhost:3010
-# lakeFS UI:   http://localhost:8000
-# NiFi UI:     http://localhost:8443/nifi/
+./install.sh          # installs Falco, configures host, starts the stack
 ```
 
-Operators with an existing `moe-sovereign` installation that uses Phase 16-24 (formerly in moe-sovereign) should see [`docs/migration/from-sovereign.md`](docs/migration/from-sovereign.md) for a clean-cut migration including data transfer.
+| Service | URL |
+|---|---|
+| Codex API | `http://localhost:8090` |
+| Codex Docs | `http://localhost:8090/docs` |
+| Marquez UI | `http://localhost:3030` |
+| lakeFS UI | `http://localhost:8010` |
+| NiFi UI | `http://localhost:8181/nifi/` |
+
+**Host requirements for Tier 1 compliance (Falco):**  
+Linux ≥ 5.8 with BTF (`/sys/kernel/btf/vmlinux`). On Proxmox/QEMU: set CPU type
+to **host** in VM settings before first start. The installer handles everything
+else (Falco apt package, `perf_event_paranoid=2`, systemd service).  
+See [`docs/admin/compliance.md`](docs/admin/compliance.md) for details.
+
+Operators with an existing `moe-sovereign` installation that uses Phase 16-24
+(formerly in moe-sovereign) should see [`docs/migration/from-sovereign.md`](docs/migration/from-sovereign.md)
+for a clean-cut migration including data transfer.
 
 ---
 
