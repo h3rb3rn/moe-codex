@@ -24,6 +24,9 @@ services:
       - .env
     ports:
       - "${CODEX_HOST_PORT:-8090}:8090"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - trivy_results:/var/lib/codex/trivy
     depends_on:
       moe-opa:
         condition: service_healthy
@@ -746,6 +749,7 @@ volumes:
   opensearch_data:
   falco_rules:
   falco_events:
+  trivy_results:
 
 networks:
   # Joins the moe-sovereign network so codex services can reach

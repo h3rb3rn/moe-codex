@@ -8,9 +8,14 @@
     <span class="badge bg-secondary ms-2 fs-6" id="compliance-status">–</span>
   </h5>
   <div class="d-flex gap-2">
+    <span class="badge bg-secondary" id="tier-badge" title="Active scanner tier">–</span>
+    <button class="btn btn-sm btn-outline-info" onclick="triggerTrivy()"
+            title="Scan container images for CVEs — works on VMs without eBPF">
+      <i class="bi bi-bug me-1"></i>Trivy Scan
+    </button>
     <button class="btn btn-sm btn-outline-warning" onclick="triggerScan()"
-            title="Requires openscap-scanner on the host or a Kestra scan workflow">
-      <i class="bi bi-play-circle me-1"></i>Run SCAP Scan
+            title="Requires oscap binary or bare-metal Falco">
+      <i class="bi bi-play-circle me-1"></i>SCAP Scan
     </button>
     <button class="btn btn-sm btn-outline-primary" onclick="loadAll()">
       <i class="bi bi-arrow-clockwise me-1"></i>Refresh
@@ -39,16 +44,16 @@
   <div class="col-12 col-md-3">
     <div class="card text-center">
       <div class="card-body py-3">
-        <div class="fs-2 fw-bold text-success" id="scap-score">–</div>
-        <div class="text-muted small">SCAP Score (%)</div>
+        <div class="fs-2 fw-bold text-danger" id="trivy-critical">–</div>
+        <div class="text-muted small">Trivy Critical CVEs</div>
       </div>
     </div>
   </div>
   <div class="col-12 col-md-3">
     <div class="card text-center">
       <div class="card-body py-3">
-        <div class="fs-2 fw-bold text-danger" id="scap-fail">–</div>
-        <div class="text-muted small">SCAP Failed Rules</div>
+        <div class="fs-2 fw-bold text-success" id="scap-score">–</div>
+        <div class="text-muted small">Security Score</div>
       </div>
     </div>
   </div>
@@ -132,29 +137,69 @@ function prioBadge(p) {
 }
 
 async function loadAll() {
-  await Promise.all([checkStatus(), loadFalcoSummary(), loadScap()]);
+  await Promise.all([checkStatus(), loadFalcoSummary(), loadScap(), loadTrivy()]);
 }
 
 async function checkStatus() {
   try {
-    const r = await fetch('/v1/codex/compliance/status');
+    const r = await fetch('/api/codex/compliance/status');
     const d = await r.json();
-    const el = document.getElementById('compliance-status');
-    const ok = d.falco_reachable || d.scap_available;
-    el.textContent = ok ? 'active' : 'no data';
-    el.className = `badge ${ok ? 'bg-success' : 'bg-secondary'} ms-2 fs-6`;
+    const el  = document.getElementById('compliance-status');
+    const tier = document.getElementById('tier-badge');
+    const ok  = d.reachable || d.falco_reachable || d.scap_available || d.trivy_scanned;
+    el.textContent  = ok ? 'active' : 'no data';
+    el.className    = `badge ${ok ? 'bg-success' : 'bg-secondary'} ms-2 fs-6`;
+    if (d.tier === 'falco') {
+      tier.textContent = 'Tier 1: Falco'; tier.className = 'badge bg-danger';
+    } else if (d.tier === 'trivy') {
+      tier.textContent = 'Tier 2: Trivy'; tier.className = 'badge bg-info';
+    } else {
+      tier.textContent = 'Scanner offline'; tier.className = 'badge bg-secondary';
+    }
   } catch { }
+}
+
+async function loadTrivy() {
+  try {
+    const r = await fetch('/api/codex/compliance/trivy/summary');
+    const d = await r.json();
+    document.getElementById('trivy-critical').textContent = d.available ? (d.critical ?? '–') : '–';
+    if (d.available) {
+      document.getElementById('scap-score').textContent = d.score ?? '–';
+      renderTrivyDetails(d);
+    }
+  } catch { }
+}
+
+function renderTrivyDetails(d) {
+  const scapBody = document.getElementById('scap-body');
+  if (!d.available) return;
+  const sevHtml = Object.entries(d.vulns_by_severity || {})
+    .sort(([,a],[,b]) => b-a)
+    .map(([sev,cnt]) => {
+      const cls = {CRITICAL:'danger',HIGH:'warning',MEDIUM:'info',LOW:'secondary'}[sev] || 'secondary';
+      return `<span class="badge bg-${cls} me-1">${sev}: ${cnt}</span>`;
+    }).join('');
+  const tgts = (d.targets || []).map(t => `<code class="small">${escHtml(t)}</code>`).join(', ');
+  scapBody.innerHTML = `
+    <div class="mb-2">
+      <i class="bi bi-bug me-1 text-info"></i><strong>Trivy CVE Scan</strong>
+      <span class="text-muted small ms-2">${escHtml(d.scanned_at||'')}</span>
+    </div>
+    <div class="mb-2">${sevHtml || '<span class="text-muted small">No vulnerabilities found</span>'}</div>
+    <div class="text-muted small">Targets: ${tgts || '–'}</div>
+    <div class="text-muted small">Misconfigs: ${Object.values(d.misconfigs||{}).reduce((a,b)=>a+b,0)}</div>`;
 }
 
 async function loadFalcoSummary() {
   try {
-    const sr = await fetch('/v1/codex/compliance/falco/summary');
+    const sr = await fetch('/api/codex/compliance/falco/summary');
     const s  = await sr.json();
     document.getElementById('falco-critical').textContent = s.critical ?? '–';
     document.getElementById('falco-total').textContent    = s.total    ?? '–';
     renderTopRules(s.top_rules || []);
 
-    const er = await fetch('/v1/codex/compliance/falco/events?limit=200');
+    const er = await fetch('/api/codex/compliance/falco/events?limit=200');
     const ed = await er.json();
     allFalcoEvents = ed.events || [];
     renderFalcoTable(allFalcoEvents);
@@ -204,7 +249,7 @@ function renderTopRules(rules) {
 
 async function loadScap() {
   try {
-    const r = await fetch('/v1/codex/compliance/scap/summary');
+    const r = await fetch('/api/codex/compliance/scap/summary');
     const d = await r.json();
     document.getElementById('scap-score').textContent = d.available && d.score !== null ? d.score + '%' : '–';
     document.getElementById('scap-fail').textContent  = d.available ? d.fail : '–';
@@ -234,12 +279,27 @@ async function loadScap() {
 
 async function triggerScan() {
   try {
-    const r = await fetch('/v1/codex/compliance/scan/trigger', {method:'POST'});
+    const r = await fetch('/api/codex/compliance/scan/trigger', {method:'POST'});
     const d = await r.json();
     if (d.status === 'started') {
-      alert(`Scan started (PID ${d.pid}).\nOutput: ${d.output}\nRefresh results in a few minutes.`);
+      alert(`SCAP scan started (PID ${d.pid}).\nOutput: ${d.output}\nRefresh in a few minutes.`);
     } else {
-      alert(d.error + '\n\nHint: ' + (d.hint || 'Use a Kestra workflow to schedule scans.'));
+      alert((d.error || 'Unknown error') + '\n\nHint: ' + (d.hint || 'Use a Kestra workflow to schedule scans.'));
+    }
+  } catch(e) { alert('Error: ' + e); }
+}
+
+async function triggerTrivy() {
+  try {
+    const r = await fetch('/api/codex/compliance/trivy/trigger', {method:'POST'});
+    const d = await r.json();
+    if (d.status === 'completed') {
+      alert('Trivy scan completed.\nTarget: ' + (d.target||'?') + '\nRefreshing…');
+      loadTrivy();
+    } else if (d.status === 'error' || d.status === 'unavailable') {
+      alert('Trivy scan error:\n' + (d.message || d.error || '?') + '\n\n' + (d.hint || ''));
+    } else {
+      alert('Scan status: ' + (d.status||'?'));
     }
   } catch(e) { alert('Error: ' + e); }
 }
